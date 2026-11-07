@@ -1,0 +1,1163 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#b91c1c">
+<title>EmerMine Fire</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#f3f4f6; --card:#fff; --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
+  --red:#b91c1c; --red2:#dc2626; --ok:#15803d; --okbg:#dcfce7; --warn:#b45309; --warnbg:#fef3c7;
+  --bad:#b91c1c; --badbg:#fee2e2; --info:#1d4ed8; --infobg:#dbeafe; --gray:#4b5563; --graybg:#e5e7eb;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+button,input,select,textarea{font:inherit}
+a{color:var(--info)}
+header{position:sticky;top:0;z-index:20;background:var(--red);color:#fff;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px}
+header h1{font-size:17px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .back{background:none;border:0;color:#fff;font-size:22px;padding:0 6px;cursor:pointer}
+.net{font-size:12px;padding:3px 8px;border-radius:99px;background:rgba(255,255,255,.2);white-space:nowrap;cursor:pointer;border:0;color:#fff}
+.net.off{background:#111827}
+main{max-width:860px;margin:0 auto;padding:12px 12px 90px}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:20;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs a{flex:1;text-align:center;padding:8px 2px 7px;color:var(--muted);text-decoration:none;font-size:11px}
+nav.tabs a b{display:block;font-size:20px;line-height:1.2}
+nav.tabs a.on{color:var(--red);font-weight:600}
+.card{background:var(--card);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.card h2{font-size:15px;margin:0 0 10px}
+.row{display:flex;gap:8px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+@media(min-width:640px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:#fff;border-radius:12px;padding:12px;border-left:4px solid var(--line);cursor:pointer}
+.kpi .n{font-size:26px;font-weight:700;line-height:1.1}
+.kpi .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.02em}
+.kpi.ok{border-color:var(--ok)}.kpi.bad{border-color:var(--bad)}.kpi.warn{border-color:var(--warn)}.kpi.info{border-color:var(--info)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;padding:11px 16px;background:var(--red);color:#fff;font-weight:600;cursor:pointer;text-decoration:none;min-height:44px}
+.btn.sec{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.ghost{background:transparent;color:var(--red);padding:8px 10px;min-height:auto}
+.btn.dark{background:#111827}
+.btn.sm{padding:7px 11px;min-height:34px;font-size:13px}
+.btn.block{width:100%}
+.btn:disabled{opacity:.5}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:10px;background:#fff;min-height:44px}
+textarea{min-height:70px}
+input:focus,select:focus,textarea:focus{outline:2px solid #fca5a5;border-color:var(--red)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+@media(max-width:420px){.grid2{grid-template-columns:1fr}}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.b-ok{background:var(--okbg);color:var(--ok)}.b-p{background:var(--warnbg);color:var(--warn)}.b-v{background:var(--badbg);color:var(--bad)}
+.b-i{background:var(--infobg);color:var(--info)}.b-g{background:var(--graybg);color:var(--gray)}
+.list .it{display:flex;gap:10px;align-items:center;padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.list .it:last-child{border-bottom:0}
+.dot{width:12px;height:12px;border-radius:50%;flex:none}
+.d-ok{background:var(--ok)}.d-p{background:#f59e0b}.d-v{background:var(--bad)}.d-g{background:#9ca3af}
+.sub{font-size:12px;color:var(--muted)}
+.muted{color:var(--muted)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin:8px 0}
+.chip{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 12px;font-size:13px;white-space:nowrap;cursor:pointer}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:11px;color:var(--muted);text-transform:uppercase}
+.tright{text-align:right}
+.chk{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.chk .q{flex:1}
+.seg{display:flex;border:1px solid #d1d5db;border-radius:9px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:9px 11px;min-width:46px;font-weight:600;cursor:pointer;color:var(--muted)}
+.seg button+button{border-left:1px solid #d1d5db}
+.seg button.on.c{background:var(--ok);color:#fff}.seg button.on.nc{background:var(--bad);color:#fff}.seg button.on.na{background:#6b7280;color:#fff}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.kv div:nth-child(odd){color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#111827;color:#fff;padding:11px 16px;border-radius:10px;z-index:99;max-width:92vw;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.modal .box{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px}
+@media(min-width:640px){.modal{align-items:center}.modal .box{border-radius:16px}}
+.photo{width:100%;max-height:260px;object-fit:contain;border-radius:10px;background:#f9fafb}
+.empty{text-align:center;color:var(--muted);padding:30px 10px}
+.login{max-width:380px;margin:8vh auto;padding:0 16px}
+.login .logo{width:64px;height:64px;border-radius:16px;background:var(--red);color:#fff;font-size:34px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+.fab{position:fixed;right:16px;bottom:78px;z-index:15;border-radius:99px;box-shadow:0 4px 14px rgba(185,28,28,.4)}
+.scan video{width:100%;border-radius:12px;background:#000}
+.warnbox{background:var(--warnbg);color:#78350f;padding:10px 12px;border-radius:10px;font-size:13px;margin-bottom:12px}
+.errbox{background:var(--badbg);color:#7f1d1d;padding:10px 12px;border-radius:10px;font-size:13px;margin-bottom:12px}
+.bar{height:8px;background:var(--graybg);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok)}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ======================================================================
+   CONFIGURACIÓN — pegue aquí la URL de su aplicación web de Apps Script
+   ====================================================================== */
+const API_URL = 'https://script.google.com/macros/s/AKfycbyJPOA1PYAGsdeN_OnugP_T6C1KESrnu-7lACU8Mtrv5_nTEOEzVAxuplcb-MaTVFmU/exec';   // termina en /exec
+const APP_VERSION = '1.0.0';
+
+const CHECK_LABELS = {
+  accesible:'Accesible (sin obstrucciones)', visible:'Visible', senalizado:'Señalizado',
+  manometro:'Manómetro en zona verde', precinto:'Precinto de seguridad', pasador:'Pasador de seguridad',
+  etiqueta:'Etiqueta legible', boquilla:'Boquilla en buen estado', manguera:'Manguera en buen estado',
+  sin_corrosion:'Sin corrosión', sin_golpes:'Sin golpes ni abolladuras', soporte:'Soporte / gabinete OK',
+  peso:'Peso correcto'
+};
+const CLASES = ['ABC','BC','AB','A','B','C','D','K'];
+
+/* ============================ Almacenamiento local (IndexedDB) ============================ */
+const DB = {
+  _db: null,
+  open() {
+    if (this._db) return Promise.resolve(this._db);
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('emermine', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => { this._db = r.result; res(r.result); };
+      r.onerror = () => rej(r.error);
+    });
+  },
+  async get(k) { const db = await this.open(); return new Promise((res, rej) => { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
+  async set(k, v) { const db = await this.open(); return new Promise((res, rej) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); },
+  async del(k) { const db = await this.open(); return new Promise(res => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').delete(k); t.oncomplete = () => res(); }); }
+};
+
+/* ============================ Estado ============================ */
+const S = { session: null, data: null, queue: [], online: true, syncing: false, lastSync: null, filters: { q: '', emp: '', sem: '', est: '' } };
+
+/* ============================ Utilidades ============================ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2));
+const pad = n => String(n).padStart(2, '0');
+const today = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const nowTime = () => { const d = new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+const daysBetween = (a, b) => Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 864e5);
+const fdate = s => { if (!s) return '—'; const p = String(s).slice(0, 10).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : s; };
+function addMonths(dateStr, months) {
+  if (!dateStr || months === '' || months == null || isNaN(Number(months))) return '';
+  const p = dateStr.split('-').map(Number);
+  const d = new Date(p[0], p[1] - 1 + Number(months), 1);
+  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(p[2], last));
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+}
+function toast(msg, ms) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), ms || 2600); }
+const cfg = k => (S.data && S.data.config && S.data.config[k]) || '';
+const me = () => (S.data && S.data.user) || {};
+const isAdmin = () => me().rol === 'Administrador';
+const seesAll = () => me().rol === 'Administrador' || me().rol === 'Supervisor';
+const empName = id => { const e = (S.data.empresas || []).find(x => x.id === id); return e ? e.nombre : '—'; };
+const extById = id => (S.data.extintores || []).find(x => x.id === id);
+
+/* ============================ API ============================ */
+async function api(action, body, timeoutMs) {
+  if (!API_URL || API_URL.indexOf('http') !== 0) throw new Error('La app no tiene configurada la URL del servidor (API_URL).');
+  const ctl = new AbortController();
+  const to = setTimeout(() => ctl.abort(), timeoutMs || 45000);
+  let res;
+  try {
+    res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(Object.assign({ action: action, token: S.session && S.session.token }, body || {})), signal: ctl.signal, redirect: 'follow' });
+  } catch (e) {
+    setOnline(false);
+    const err = new Error('Sin conexión con el servidor.'); err.offline = true; throw err;
+  } finally { clearTimeout(to); }
+  setOnline(true);
+  let out;
+  try { out = await res.json(); } catch (e) { throw new Error('Respuesta no válida del servidor.'); }
+  if (!out.ok) {
+    if (String(out.error || '').indexOf('AUTH:') === 0) { await logout(true); throw new Error(out.error.slice(5).trim()); }
+    throw new Error(out.error || 'Error del servidor');
+  }
+  return out;
+}
+
+function setOnline(v) { if (S.online !== v) { S.online = v; renderNet(); } }
+
+/* ============================ Cola offline y sincronización ============================ */
+async function saveLocal() { await DB.set('data', S.data); await DB.set('queue', S.queue); }
+
+/** Agrega una operación a la cola, la aplica en local y trata de sincronizar. */
+async function enqueue(type, payload, label) {
+  const op = { opId: uuid(), type: type, payload: payload, label: label, created: new Date().toISOString(), user: me().email };
+  S.queue.push(op);
+  applyLocal(op);
+  await saveLocal();
+  renderNet();
+  trySync();
+  return op;
+}
+
+/** Operaciones administrativas: requieren conexión (no se encolan). */
+async function onlineOp(type, payload) {
+  const out = await api('sync', { ops: [{ opId: uuid(), type: type, payload: payload }] });
+  const r = out.results[0];
+  if (!r.ok) throw new Error(r.error);
+  await refresh(true);
+  return r;
+}
+
+function applyLocal(op) {
+  const d = S.data, p = op.payload;
+  if (!d) return;
+  if (op.type === 'inspeccion.create') {
+    const e = extById(p.extintor_id); if (!e) return;
+    let nc = 0; (d.catalogos.checklist || []).forEach(k => { if (p[k] === 'NC') nc++; });
+    const r = Object.assign({}, p, { codigo: e.codigo, empresa_id: e.empresa_id, resultado: nc ? 'No Apto' : 'Apto', _pending: true });
+    delete r.foto; if (p.foto) r._foto = p.foto.data;
+    d.inspecciones = (d.inspecciones || []).filter(x => x.id !== p.id).concat([r]);
+    if (!e.ult_inspeccion || p.fecha > e.ult_inspeccion) e.ult_inspeccion = p.fecha;
+  } else if (op.type === 'servicio.create') {
+    const e = extById(p.extintor_id); if (!e) return;
+    const r = Object.assign({}, p, { codigo: e.codigo, empresa_id: e.empresa_id, _pending: true }); delete r.certificado;
+    if (p.tipo === 'Mantenimiento') {
+      e.ult_mantenimiento = p.fecha; e.prox_mantenimiento = p.proxima_fecha || addMonths(p.fecha, cfg('MESES_MANTENIMIENTO'));
+      if (p.incluye_recarga === 'SI') { e.ult_recarga = p.fecha; e.prox_recarga = addMonths(p.fecha, cfg('MESES_RECARGA')); }
+    } else if (p.tipo === 'Recarga') { e.ult_recarga = p.fecha; e.prox_recarga = p.proxima_fecha || addMonths(p.fecha, cfg('MESES_RECARGA')); }
+    else if (p.tipo === 'Prueba Hidrostática') { e.ult_ph = p.fecha; e.prox_ph = p.proxima_fecha || addMonths(p.fecha, 12 * phYears(e.agente)); }
+    d.servicios = (d.servicios || []).filter(x => x.id !== p.id).concat([r]);
+  } else if (op.type === 'extintor.save') {
+    const e = extById(p.id);
+    const r = Object.assign({}, p, { _pending: true }); if (p.foto) r._foto = p.foto.data; delete r.foto;
+    if (!r.prox_ph && !(e && e.prox_ph) && r.fecha_fabricacion) r.prox_ph = addMonths(r.fecha_fabricacion, 12 * phYears(r.agente));
+    if (e) Object.assign(e, r); else d.extintores.unshift(Object.assign({ estado: 'Operativo', creado: new Date().toISOString() }, r));
+  } else if (op.type === 'entrega.create') {
+    d.entregas = (d.entregas || []).concat([Object.assign({}, p, { numero: 'PENDIENTE', extintores: JSON.stringify(p.extintores), _pending: true })]);
+  }
+}
+
+function phYears(agente) { return Number(cfg('PH_ANOS_' + String(agente || 'OTRO').toUpperCase()) || cfg('PH_ANOS_OTRO') || 5); }
+
+async function trySync(manual) {
+  if (S.syncing || !S.session) return;
+  S.syncing = true; renderNet();
+  try {
+    const pending = S.queue.filter(o => !o.error);
+    // Lotes de ~2.5 MB para no exceder límites
+    let batch = [], size = 0;
+    const batches = [];
+    pending.forEach(o => { const s = JSON.stringify(o).length; if (batch.length && size + s > 2.5e6) { batches.push(batch); batch = []; size = 0; } batch.push(o); size += s; });
+    if (batch.length) batches.push(batch);
+    let okCount = 0, errCount = 0;
+    for (const b of batches) {
+      const out = await api('sync', { ops: b.map(o => ({ opId: o.opId, type: o.type, payload: o.payload })) }, 120000);
+      out.results.forEach(r => {
+        const o = S.queue.find(x => x.opId === r.opId); if (!o) return;
+        if (r.ok) { S.queue = S.queue.filter(x => x !== o); okCount++; }
+        else { o.error = r.error; errCount++; }
+      });
+      await DB.set('queue', S.queue);
+    }
+    await refresh(true);
+    if (manual || okCount) toast(okCount ? '✓ ' + okCount + ' registro(s) sincronizado(s)' + (errCount ? ' · ' + errCount + ' con error' : '') : 'Datos actualizados');
+    if (errCount) toast('Hay registros con error. Revise "Pendientes".', 4000);
+  } catch (e) {
+    if (manual) toast(e.offline ? 'Sin señal: los registros quedan guardados en el celular.' : e.message, 3500);
+  } finally { S.syncing = false; renderNet(); }
+}
+
+/** Descarga los datos del servidor y vuelve a aplicar lo que aún está pendiente. */
+async function refresh(silent) {
+  const out = await api('bootstrap');
+  delete out.ok;
+  S.data = out;
+  S.queue.forEach(applyLocal);
+  S.lastSync = new Date().toISOString();
+  await DB.set('lastSync', S.lastSync);
+  await saveLocal();
+  // No redibujar si el usuario está llenando un formulario o tiene un diálogo abierto
+  const v = (location.hash.replace(/^#\/?/, '') || 'inicio').split('/')[0];
+  const busy = document.querySelector('.modal') || ['inspeccion', 'servicio', 'ext-form', 'entrega-nueva', 'ajustes', 'qr'].indexOf(v) >= 0;
+  if (!silent || !busy) route(); else renderNet();
+}
+
+/* ============================ Estado de extintores (semáforo) ============================ */
+function status(e) {
+  if (e.estado === 'Dado de Baja') return { worst: 'g', items: [] };
+  const t = today(), items = [];
+  const di = Number(cfg('DIAS_INSPECCION') || 30);
+  if (!e.ult_inspeccion) items.push({ k: 'Inspección', s: 'v', txt: 'Sin inspección' });
+  else { const d = daysBetween(e.ult_inspeccion, t); items.push({ k: 'Inspección', s: d > di ? 'v' : d > di - 5 ? 'p' : 'ok', txt: 'Última ' + fdate(e.ult_inspeccion) + ' (hace ' + d + ' d)' }); }
+  [['Mantenimiento', e.prox_mantenimiento, cfg('DIAS_AVISO')], ['Recarga', e.prox_recarga, cfg('DIAS_AVISO')], ['Prueba hidrostática', e.prox_ph, cfg('DIAS_AVISO_PH')]].forEach(x => {
+    if (!x[1]) { items.push({ k: x[0], s: 'n', txt: 'Sin fecha registrada' }); return; }
+    const d = daysBetween(t, x[1]);
+    items.push({ k: x[0], s: d < 0 ? 'v' : d <= Number(x[2] || 30) ? 'p' : 'ok', txt: (d < 0 ? 'Vencido ' : 'Vence ') + fdate(x[1]) + (d < 0 ? ' (hace ' + (-d) + ' d)' : ' (en ' + d + ' d)') });
+  });
+  let worst = 'ok';
+  if (items.some(i => i.s === 'p')) worst = 'p';
+  if (items.some(i => i.s === 'v') || e.estado === 'Fuera de Servicio') worst = 'v';
+  return { worst: worst, items: items };
+}
+const semLabel = { ok: 'Vigente', p: 'Por vencer', v: 'Vencido', g: 'De baja' };
+const activos = () => (S.data.extintores || []).filter(e => e.estado !== 'Dado de Baja');
+
+/* ============================ Enrutador ============================ */
+function go(h) { location.hash = h; }
+window.addEventListener('hashchange', route);
+
+function route() {
+  if (!S.session) return viewLogin();
+  if (!S.data) return viewLoading();
+  if (me().debe_cambiar === 'SI') return viewChangePassword(true);
+  const h = location.hash.replace(/^#\/?/, '') || 'inicio';
+  const [v, a] = h.split('/');
+  const views = {
+    inicio: viewDashboard, extintores: viewList, ext: () => viewExt(a), 'ext-form': () => viewExtForm(a),
+    inspeccion: () => viewInspeccion(a), servicio: () => viewServicio(a), entregas: viewEntregas,
+    'entrega-nueva': viewEntregaNueva, usuarios: viewUsuarios, empresas: viewEmpresas, pendientes: viewPendientes,
+    ajustes: viewAjustes, inspecciones: viewInspecciones, servicios: viewServicios, qr: viewQrPrint
+  };
+  (views[v] || viewDashboard)();
+  window.scrollTo(0, 0);
+}
+
+function shell(title, body, opts) {
+  opts = opts || {};
+  const tab = opts.tab || '';
+  $('#app').innerHTML = `
+  <header>
+    ${opts.back ? `<button class="back" onclick="history.back()" aria-label="Volver">‹</button>` : ''}
+    <h1>${esc(title)}</h1>
+    <button class="net" id="net" onclick="trySync(true)"></button>
+  </header>
+  <main>${body}</main>
+  <nav class="tabs">
+    <a href="#/inicio" class="${tab === 'inicio' ? 'on' : ''}"><b>◉</b>Inicio</a>
+    <a href="#/extintores" class="${tab === 'ext' ? 'on' : ''}"><b>🧯</b>Extintores</a>
+    <a href="#/inspecciones" class="${tab === 'ins' ? 'on' : ''}"><b>☑</b>Inspecciones</a>
+    ${isAdmin() ? `<a href="#/entregas" class="${tab === 'ent' ? 'on' : ''}"><b>⇄</b>Entregas</a>` : `<a href="#/servicios" class="${tab === 'ser' ? 'on' : ''}"><b>🔧</b>Servicios</a>`}
+    <a href="#/ajustes" class="${tab === 'aj' ? 'on' : ''}"><b>⚙</b>Más</a>
+  </nav>`;
+  renderNet();
+}
+
+function renderNet() {
+  const n = $('#net'); if (!n) return;
+  const q = S.queue.length, err = S.queue.filter(o => o.error).length;
+  n.className = 'net' + (S.online ? '' : ' off');
+  n.textContent = S.syncing ? '⟳ Sincronizando…' : (S.online ? '● En línea' : '○ Sin señal') + (q ? ' · ' + q + ' pend.' : '') + (err ? ' ⚠' : '');
+}
+
+/* ============================ Vistas: acceso ============================ */
+function viewLoading() { $('#app').innerHTML = '<div class="empty" style="margin-top:30vh">Cargando…</div>'; }
+
+function viewLogin() {
+  $('#app').innerHTML = `
+  <div class="login">
+    <div class="logo">🧯</div>
+    <h2 style="text-align:center;margin:0 0 4px">EmerMine Fire</h2>
+    <p class="muted" style="text-align:center;margin:0 0 20px">Gestión de extintores</p>
+    <div class="card">
+      <form onsubmit="doLogin(event)">
+        <label>Correo electrónico</label>
+        <input id="lg-email" type="email" autocomplete="username" required inputmode="email">
+        <label>Contraseña</label>
+        <input id="lg-pass" type="password" autocomplete="current-password" required>
+        <div id="lg-err" class="errbox hide" style="margin-top:12px"></div>
+        <button class="btn block" style="margin-top:14px" id="lg-btn">Iniciar sesión</button>
+      </form>
+      <p class="sub" style="margin:12px 0 0">El primer ingreso requiere señal. Si olvidó su contraseña, pida al administrador que la restablezca.</p>
+    </div>
+  </div>`;
+}
+
+async function doLogin(ev) {
+  ev.preventDefault();
+  const btn = $('#lg-btn'), err = $('#lg-err');
+  btn.disabled = true; btn.textContent = 'Ingresando…'; err.classList.add('hide');
+  try {
+    const out = await api('login', { email: $('#lg-email').value, password: $('#lg-pass').value });
+    S.session = { token: out.token, email: $('#lg-email').value.trim().toLowerCase() };
+    await DB.set('session', S.session);
+    viewLoading();
+    await refresh();
+    location.hash = '#/inicio'; route();
+  } catch (e) {
+    err.textContent = e.message; err.classList.remove('hide');
+    btn.disabled = false; btn.textContent = 'Iniciar sesión';
+  }
+}
+
+async function logout(silent) {
+  if (!silent && S.queue.length && !confirm('Tiene ' + S.queue.length + ' registro(s) sin sincronizar. Si cierra sesión se perderán. ¿Continuar?')) return;
+  if (!silent) { try { await api('logout'); } catch (e) {} }
+  S.session = null; S.data = null; S.queue = [];
+  await DB.del('session'); await DB.del('data'); await DB.del('queue');
+  route();
+}
+
+function viewChangePassword(forced) {
+  const body = `
+  <div class="card">
+    ${forced ? '<div class="warnbox">Por seguridad, defina su propia contraseña antes de continuar.</div>' : ''}
+    <form onsubmit="doChangePassword(event)">
+      ${forced ? '' : '<label>Contraseña actual</label><input id="cp-cur" type="password" required>'}
+      <label>Nueva contraseña (mínimo 6 caracteres)</label><input id="cp-new" type="password" minlength="6" required>
+      <label>Repetir nueva contraseña</label><input id="cp-new2" type="password" minlength="6" required>
+      <button class="btn block" style="margin-top:14px">Guardar contraseña</button>
+    </form>
+    ${forced ? '<button class="btn ghost block" style="margin-top:8px" onclick="logout()">Cerrar sesión</button>' : ''}
+  </div>`;
+  if (forced) $('#app').innerHTML = `<header><h1>Nueva contraseña</h1></header><main>${body}</main>`;
+  else shell('Cambiar contraseña', body, { back: true, tab: 'aj' });
+}
+
+async function doChangePassword(ev) {
+  ev.preventDefault();
+  const a = $('#cp-new').value, b = $('#cp-new2').value;
+  if (a !== b) return toast('Las contraseñas no coinciden.');
+  try {
+    await api('changePassword', { current: $('#cp-cur') ? $('#cp-cur').value : '', password: a });
+    S.data.user.debe_cambiar = 'NO'; await saveLocal();
+    toast('Contraseña actualizada.'); go('#/inicio'); route();
+  } catch (e) { toast(e.offline ? 'Necesita señal para cambiar la contraseña.' : e.message, 3500); }
+}
+
+/* ============================ Vista: Dashboard ============================ */
+function viewDashboard() {
+  const ext = activos(), t = today(), mes = t.slice(0, 7);
+  const st = ext.map(e => ({ e: e, s: status(e) }));
+  const insMes = new Set((S.data.inspecciones || []).filter(i => String(i.fecha).slice(0, 7) === mes).map(i => i.extintor_id));
+  const inspeccionados = ext.filter(e => insMes.has(e.id)).length;
+  const pct = ext.length ? Math.round(100 * inspeccionados / ext.length) : 0;
+  const cnt = (k, s) => st.filter(x => x.s.items.some(i => i.k === k && i.s === s)).length;
+  const fuera = ext.filter(e => e.estado === 'Fuera de Servicio' || e.estado === 'En Mantenimiento').length;
+  const noApt = (S.data.inspecciones || []).filter(i => i.resultado === 'No Apto' && daysBetween(i.fecha, t) <= 30).length;
+  const sinEmp = !seesAll() && !me().empresa_id;
+
+  // Por empresa
+  const byEmp = {};
+  st.forEach(x => { const k = x.e.empresa_id || ''; byEmp[k] = byEmp[k] || { n: 0, ins: 0, v: 0, p: 0 }; byEmp[k].n++; if (insMes.has(x.e.id)) byEmp[k].ins++; if (x.s.worst === 'v') byEmp[k].v++; else if (x.s.worst === 'p') byEmp[k].p++; });
+  const empRows = Object.keys(byEmp).map(k => ({ k: k, name: empName(k), ...byEmp[k] })).sort((a, b) => b.v - a.v || a.name.localeCompare(b.name));
+
+  const alertas = st.filter(x => x.s.worst !== 'ok').sort((a, b) => (a.s.worst === 'v' ? 0 : 1) - (b.s.worst === 'v' ? 0 : 1)).slice(0, 25);
+
+  shell(cfg('NOMBRE_SISTEMA') || 'EmerMine Fire', `
+    ${sinEmp ? '<div class="errbox">Su usuario no tiene empresa / área asignada. Pida al administrador que se la asigne para ver sus extintores.</div>' : ''}
+    ${S.queue.filter(o => o.error).length ? '<div class="errbox">Hay registros que no se pudieron sincronizar. <a href="#/pendientes">Revisar</a></div>' : ''}
+    <p class="sub" style="margin:0 0 10px">${esc(me().nombre)} · ${esc(me().rol)}${me().empresa_id ? ' · ' + esc(empName(me().empresa_id)) : ''} · Actualizado ${S.lastSync ? new Date(S.lastSync).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' }) : '—'}</p>
+    <div class="card">
+      <div class="row"><b class="grow">Inspección mensual — ${new Date().toLocaleString('es-PE', { month: 'long', year: 'numeric' })}</b><b>${pct}%</b></div>
+      <div class="bar" style="margin:8px 0 4px"><i style="width:${pct}%"></i></div>
+      <span class="sub">${inspeccionados} de ${ext.length} extintores inspeccionados este mes</span>
+    </div>
+    <div class="kpis">
+      <div class="kpi info" onclick="filt('','','','')"><div class="n">${ext.length}</div><div class="l">Extintores activos</div></div>
+      <div class="kpi bad" onclick="filt('','','v','')"><div class="n">${st.filter(x => x.s.worst === 'v').length}</div><div class="l">Con algo vencido</div></div>
+      <div class="kpi warn" onclick="filt('','','p','')"><div class="n">${st.filter(x => x.s.worst === 'p').length}</div><div class="l">Por vencer</div></div>
+      <div class="kpi ok" onclick="filt('','','ok','')"><div class="n">${st.filter(x => x.s.worst === 'ok').length}</div><div class="l">Vigentes</div></div>
+    </div>
+    <div class="card"><h2>Vencimientos por tipo</h2>
+      <table><tr><th>Ítem</th><th class="tright">Vencidos</th><th class="tright">Por vencer</th></tr>
+      ${['Inspección', 'Mantenimiento', 'Recarga', 'Prueba hidrostática'].map(k => `<tr><td>${k}</td><td class="tright"><span class="badge b-v">${cnt(k, 'v')}</span></td><td class="tright"><span class="badge b-p">${cnt(k, 'p')}</span></td></tr>`).join('')}
+      <tr><td>Fuera de servicio / en mantenimiento</td><td class="tright"><span class="badge b-g">${fuera}</span></td><td></td></tr>
+      <tr><td>Inspecciones No Apto (30 días)</td><td class="tright"><span class="badge b-v">${noApt}</span></td><td></td></tr>
+      </table>
+    </div>
+    ${seesAll() ? `<div class="card"><h2>Cumplimiento por empresa / área (mes actual)</h2>
+      <table><tr><th>Empresa / Área</th><th class="tright">Ext.</th><th class="tright">Insp.</th><th class="tright">%</th><th class="tright">Venc.</th></tr>
+      ${empRows.map(r => `<tr onclick="filt('','${esc(r.k)}','','')" style="cursor:pointer"><td>${esc(r.name)}</td><td class="tright">${r.n}</td><td class="tright">${r.ins}</td><td class="tright">${Math.round(100 * r.ins / r.n)}%</td><td class="tright">${r.v ? `<span class="badge b-v">${r.v}</span>` : '0'}</td></tr>`).join('')}
+      </table></div>` : ''}
+    <div class="card"><h2>Alertas</h2>
+      ${alertas.length ? `<div class="list">${alertas.map(x => `
+        <div class="it" onclick="go('#/ext/${x.e.id}')">
+          <span class="dot d-${x.s.worst}"></span>
+          <div class="grow"><b>${esc(x.e.codigo)}</b> <span class="sub">${esc(empName(x.e.empresa_id))}</span>
+          <div class="sub">${x.s.items.filter(i => i.s === 'v' || i.s === 'p').map(i => esc(i.k + ': ' + i.txt)).join(' · ') || esc(x.e.estado)}</div></div>
+        </div>`).join('')}</div>` : '<div class="empty">Sin alertas 👍</div>'}
+    </div>
+  `, { tab: 'inicio' });
+}
+
+function filt(q, emp, sem, est) { S.filters = { q: q, emp: emp, sem: sem, est: est }; go('#/extintores'); }
+
+/* ============================ Vista: Lista de extintores ============================ */
+function viewList() {
+  const f = S.filters;
+  shell('Extintores', `
+    <div class="row">
+      <input id="f-q" class="grow" placeholder="Buscar código, serie, ubicación…" value="${esc(f.q)}" oninput="S.filters.q=this.value;renderList()">
+      <button class="btn sec" onclick="openScanner()" title="Escanear QR">⌗ QR</button>
+    </div>
+    <div class="row wrap" style="margin-top:8px">
+      ${seesAll() ? `<select class="grow" onchange="S.filters.emp=this.value;renderList()" style="min-width:150px"><option value="">Todas las empresas / áreas</option>
+        ${(S.data.empresas || []).slice().sort((a, b) => a.nombre.localeCompare(b.nombre)).map(e => `<option value="${esc(e.id)}" ${f.emp === e.id ? 'selected' : ''}>${esc(e.nombre)}</option>`).join('')}</select>` : ''}
+      <select class="grow" onchange="S.filters.est=this.value;renderList()" style="min-width:130px"><option value="">Estado: activos</option>
+        ${S.data.catalogos.estados.map(s => `<option ${f.est === s ? 'selected' : ''}>${s}</option>`).join('')}<option value="*" ${f.est === '*' ? 'selected' : ''}>Todos</option></select>
+    </div>
+    <div class="chips">
+      ${[['', 'Todos'], ['v', 'Vencidos'], ['p', 'Por vencer'], ['ok', 'Vigentes']].map(c => `<span class="chip ${f.sem === c[0] ? 'on' : ''}" onclick="S.filters.sem='${c[0]}';viewList()">${c[1]}</span>`).join('')}
+    </div>
+    <div class="card" style="padding:4px 10px"><div id="lst" class="list"></div></div>
+    <div class="row wrap" style="gap:8px"><button class="btn sec sm" onclick="exportCsv()">⬇ Exportar CSV</button><button class="btn sec sm" onclick="printQrFiltered()">🏷 Etiquetas QR</button></div>
+    <button class="btn fab" onclick="go('#/ext-form')">＋ Nuevo</button>
+  `, { tab: 'ext' });
+  renderList();
+}
+
+function filteredList() {
+  const f = S.filters, q = f.q.trim().toLowerCase();
+  return (S.data.extintores || []).filter(e => {
+    if (f.est === '' && e.estado === 'Dado de Baja') return false;
+    if (f.est && f.est !== '*' && e.estado !== f.est) return false;
+    if (f.emp && e.empresa_id !== f.emp) return false;
+    if (q && ![e.codigo, e.serie, e.ubicacion, e.nivel, empName(e.empresa_id)].join(' ').toLowerCase().includes(q)) return false;
+    if (f.sem && status(e).worst !== f.sem) return false;
+    return true;
+  }).sort((a, b) => String(a.codigo).localeCompare(String(b.codigo), 'es', { numeric: true }));
+}
+
+function renderList() {
+  const l = filteredList(), el = $('#lst'); if (!el) return;
+  const shown = l.slice(0, 300);
+  el.innerHTML = shown.length ? shown.map(e => { const s = status(e); return `
+    <div class="it" onclick="go('#/ext/${e.id}')">
+      <span class="dot d-${s.worst}"></span>
+      <div class="grow"><b>${esc(e.codigo)}</b> <span class="sub">· ${esc(e.agente)} ${esc(e.capacidad)}</span>${e._pending ? ' <span class="badge b-i">pendiente</span>' : ''}
+        <div class="sub">${esc(empName(e.empresa_id))} · ${esc(e.ubicacion || 'sin ubicación')}</div></div>
+      <span class="badge b-${s.worst === 'ok' ? 'ok' : s.worst === 'g' ? 'g' : s.worst}">${e.estado !== 'Operativo' ? esc(e.estado) : semLabel[s.worst]}</span>
+    </div>`; }).join('') + (l.length > 300 ? `<div class="empty">Mostrando 300 de ${l.length}. Use la búsqueda.</div>` : '')
+    : '<div class="empty">No hay extintores con esos filtros.</div>';
+  const t = document.querySelector('header h1'); if (t) t.textContent = 'Extintores (' + l.length + ')';
+}
+
+function exportCsv() {
+  const l = filteredList();
+  const cols = ['codigo', 'serie', 'agente', 'clase', 'capacidad', 'empresa', 'ubicacion', 'nivel', 'proveedor', 'fecha_fabricacion', 'estado', 'ult_inspeccion', 'ult_mantenimiento', 'prox_mantenimiento', 'ult_recarga', 'prox_recarga', 'ult_ph', 'prox_ph', 'semaforo'];
+  const rows = [cols.join(';')].concat(l.map(e => cols.map(c => {
+    const v = c === 'empresa' ? empName(e.empresa_id) : c === 'semaforo' ? semLabel[status(e).worst] : (e[c] || '');
+    return '"' + String(v).replace(/"/g, '""') + '"';
+  }).join(';')));
+  const blob = new Blob(['\ufeff' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'extintores_' + today() + '.csv'; a.click();
+}
+
+/* ============================ Vista: Ficha del extintor ============================ */
+function viewExt(id) {
+  const e = extById(id);
+  if (!e) { shell('Extintor', '<div class="empty">Extintor no encontrado.</div>', { back: true, tab: 'ext' }); return; }
+  const s = status(e);
+  const ins = (S.data.inspecciones || []).filter(i => i.extintor_id === id).sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora));
+  const ser = (S.data.servicios || []).filter(i => i.extintor_id === id).sort((a, b) => String(b.fecha).localeCompare(a.fecha));
+  const foto = e._foto || e.foto_url;
+  shell(e.codigo, `
+    <div class="card">
+      <div class="row"><span class="dot d-${s.worst}"></span><b class="grow">${esc(e.codigo)}</b><span class="badge ${e.estado === 'Operativo' ? 'b-ok' : 'b-v'}">${esc(e.estado)}</span></div>
+      ${foto ? `<img class="photo" style="margin-top:10px" src="${esc(foto)}" alt="Foto" loading="lazy" onerror="this.remove()">` : ''}
+      <div class="kv" style="margin-top:10px">
+        <div>Empresa / Área</div><div>${esc(empName(e.empresa_id))}</div>
+        <div>Ubicación</div><div>${esc(e.ubicacion || '—')}${e.nivel ? ' · ' + esc(e.nivel) : ''}</div>
+        <div>Agente / Clase</div><div>${esc(e.agente)} · ${esc(e.clase)} · ${esc(e.capacidad)}</div>
+        <div>N° serie</div><div>${esc(e.serie || '—')}</div>
+        <div>Fabricación</div><div>${fdate(e.fecha_fabricacion)}</div>
+        <div>Proveedor</div><div>${esc(e.proveedor || '—')}</div>
+        ${e.observaciones ? `<div>Observaciones</div><div>${esc(e.observaciones)}</div>` : ''}
+      </div>
+    </div>
+    <div class="row" style="gap:8px;margin-bottom:12px">
+      <button class="btn grow" onclick="go('#/inspeccion/${e.id}')">☑ Inspeccionar</button>
+      <button class="btn dark grow" onclick="go('#/servicio/${e.id}')">🔧 Servicio</button>
+    </div>
+    <div class="card"><h2>Estado</h2>
+      <table>${s.items.map(i => `<tr><td>${esc(i.k)}</td><td>${esc(i.txt)}</td><td class="tright"><span class="badge b-${i.s === 'n' ? 'g' : i.s}">${i.s === 'n' ? '—' : semLabel[i.s]}</span></td></tr>`).join('')}</table>
+    </div>
+    <div class="card"><h2>Inspecciones (${ins.length})</h2>
+      ${ins.length ? `<table><tr><th>Fecha</th><th>Inspector</th><th>Resultado</th></tr>${ins.slice(0, 24).map(i => `<tr onclick="showInspeccion('${i.id}')" style="cursor:pointer"><td>${fdate(i.fecha)} ${esc(i.hora || '')}</td><td>${esc(i.inspector)}</td><td><span class="badge ${i.resultado === 'Apto' ? 'b-ok' : 'b-v'}">${esc(i.resultado)}</span>${i._pending ? ' <span class="badge b-i">pend.</span>' : ''}</td></tr>`).join('')}</table>` : '<div class="sub">Sin inspecciones registradas.</div>'}
+    </div>
+    <div class="card"><h2>Servicios (${ser.length})</h2>
+      ${ser.length ? `<table><tr><th>Fecha</th><th>Tipo</th><th>Proveedor</th></tr>${ser.map(i => `<tr><td>${fdate(i.fecha)}</td><td>${esc(i.tipo)}${i._pending ? ' <span class="badge b-i">pend.</span>' : ''}</td><td>${esc(i.proveedor)}${i.certificado_url ? ` · <a href="${esc(i.certificado_url)}" target="_blank" rel="noopener">certificado</a>` : ''}</td></tr>`).join('')}</table>` : '<div class="sub">Sin servicios registrados.</div>'}
+    </div>
+    <div class="row wrap" style="gap:8px">
+      <button class="btn sec sm" onclick="go('#/ext-form/${e.id}')">✎ Editar</button>
+      <button class="btn sec sm" onclick="go('#/qr/${e.id}')">🏷 Etiqueta QR</button>
+      ${isAdmin() ? `<button class="btn sec sm" style="color:var(--bad)" onclick="delExt('${e.id}')">Eliminar</button>` : ''}
+    </div>
+  `, { back: true, tab: 'ext' });
+}
+
+function showInspeccion(id) {
+  const i = (S.data.inspecciones || []).find(x => x.id === id); if (!i) return;
+  const foto = i._foto || i.foto_url;
+  modal(`<h3 style="margin-top:0">Inspección ${esc(i.codigo)} — ${fdate(i.fecha)} ${esc(i.hora || '')}</h3>
+    <p><span class="badge ${i.resultado === 'Apto' ? 'b-ok' : 'b-v'}">${esc(i.resultado)}</span> · ${esc(i.inspector)}${i.gps ? ' · <a target="_blank" rel="noopener" href="https://maps.google.com/?q=' + esc(i.gps) + '">GPS</a>' : ''}</p>
+    <table>${Object.keys(CHECK_LABELS).map(k => `<tr><td>${CHECK_LABELS[k]}</td><td class="tright"><span class="badge ${i[k] === 'NC' ? 'b-v' : i[k] === 'NA' ? 'b-g' : 'b-ok'}">${i[k] === 'NC' ? 'No conforme' : i[k] === 'NA' ? 'N.A.' : 'Conforme'}</span></td></tr>`).join('')}</table>
+    ${i.observaciones ? `<p><b>Observaciones:</b> ${esc(i.observaciones)}</p>` : ''}
+    ${foto ? `<img class="photo" src="${esc(foto)}" onerror="this.remove()">` : ''}
+    <button class="btn sec block" style="margin-top:12px" onclick="closeModal()">Cerrar</button>`);
+}
+
+async function delExt(id) {
+  const e = extById(id);
+  if (!confirm('¿Eliminar definitivamente el extintor ' + e.codigo + '? Su historial queda en la hoja. Si solo dejó de usarse, mejor cambie el estado a "Dado de Baja".')) return;
+  try { await onlineOp('extintor.delete', { id: id }); toast('Extintor eliminado.'); go('#/extintores'); }
+  catch (er) { toast(er.offline ? 'Necesita señal para eliminar.' : er.message, 3500); }
+}
+
+/* ============================ Vista: Formulario de extintor ============================ */
+function viewExtForm(id) {
+  const e = id ? extById(id) : null;
+  const v = k => esc(e ? (e[k] || '') : '');
+  const empOpts = (S.data.empresas || []).filter(x => x.activo !== 'NO' || (e && e.empresa_id === x.id)).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  shell(e ? 'Editar ' + e.codigo : 'Nuevo extintor', `
+    <form class="card" onsubmit="saveExt(event,'${e ? e.id : ''}')">
+      <div class="grid2">
+        <div><label>Código interno *</label><input name="codigo" required value="${v('codigo')}" autocapitalize="characters"></div>
+        <div><label>N° de serie</label><input name="serie" value="${v('serie')}"></div>
+        <div><label>Tipo de agente *</label><select name="agente" required>${S.data.catalogos.agentes.map(a => `<option ${(e ? e.agente : 'PQS') === a ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
+        <div><label>Clase *</label><select name="clase">${CLASES.map(a => `<option ${(e ? e.clase : 'ABC') === a ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
+        <div><label>Capacidad</label><input name="capacidad" placeholder="Ej: 6 kg" value="${v('capacidad')}"></div>
+        <div><label>Estado</label><select name="estado">${S.data.catalogos.estados.map(a => `<option ${(e ? e.estado : 'Operativo') === a ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
+      </div>
+      <label>Empresa / Área *</label>
+      ${seesAll() ? `<select name="empresa_id" required><option value="">Seleccione…</option>${empOpts.map(x => `<option value="${esc(x.id)}" ${e && e.empresa_id === x.id ? 'selected' : ''}>${esc(x.nombre)}</option>`).join('')}</select>`
+                  : `<input disabled value="${esc(empName(me().empresa_id))}">`}
+      <div class="grid2">
+        <div><label>Ubicación exacta</label><input name="ubicacion" value="${v('ubicacion')}" placeholder="Ej: CA 119 NV 100"></div>
+        <div><label>Nivel / Zona</label><input name="nivel" value="${v('nivel')}" placeholder="Ej: NV 250 / Superficie"></div>
+        <div><label>Empresa mantenedora</label><input name="proveedor" value="${v('proveedor')}"></div>
+        <div><label>Fecha de fabricación</label><input name="fecha_fabricacion" type="date" value="${v('fecha_fabricacion')}"></div>
+        <div><label>Próximo mantenimiento</label><input name="prox_mantenimiento" type="date" value="${v('prox_mantenimiento')}"></div>
+        <div><label>Próxima recarga</label><input name="prox_recarga" type="date" value="${v('prox_recarga')}"></div>
+        <div><label>Próxima prueba hidrostática</label><input name="prox_ph" type="date" value="${v('prox_ph')}"></div>
+      </div>
+      <p class="sub">Si deja vacía la prueba hidrostática, se calcula desde la fecha de fabricación según el agente.</p>
+      <label>Observaciones</label><textarea name="observaciones">${v('observaciones')}</textarea>
+      <label>Fotografía</label><input type="file" accept="image/*" capture="environment" id="ef-foto">
+      <button class="btn block" style="margin-top:16px">Guardar</button>
+    </form>
+  `, { back: true, tab: 'ext' });
+}
+
+async function saveExt(ev, id) {
+  ev.preventDefault();
+  const fd = new FormData(ev.target), p = {};
+  fd.forEach((val, k) => p[k] = String(val).trim());
+  p.codigo = p.codigo.replace(/\s+/g, ' ').toUpperCase();
+  if (!seesAll()) p.empresa_id = me().empresa_id;
+  if (!p.empresa_id) return toast('Seleccione la empresa / área.');
+  const norm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\s\-_.\/]+/g, '').toUpperCase();
+  const dup = (S.data.extintores || []).find(x => norm(x.codigo) === norm(p.codigo) && x.id !== id && x.estado !== 'Dado de Baja');
+  if (dup && !confirm('Ya existe un extintor con el código ' + dup.codigo + '. El servidor lo rechazará. ¿Guardar igual?')) return;
+  p.id = id || uuid();
+  const f = $('#ef-foto').files[0];
+  if (f) p.foto = { data: await compressImage(f), mime: 'image/jpeg' };
+  await enqueue('extintor.save', p, (id ? 'Edición ' : 'Alta ') + p.codigo);
+  toast(S.online ? 'Guardado.' : 'Guardado en el celular. Se enviará al tener señal.');
+  go('#/ext/' + p.id);
+}
+
+/* ============================ Vista: Inspección ============================ */
+function viewInspeccion(id) {
+  const e = extById(id);
+  if (!e) return shell('Inspección', '<div class="empty">Extintor no encontrado.</div>', { back: true });
+  const items = S.data.catalogos.checklist;
+  shell('Inspección ' + e.codigo, `
+    <form onsubmit="saveInspeccion(event,'${e.id}')">
+      <div class="card">
+        <div class="sub">${esc(empName(e.empresa_id))} · ${esc(e.ubicacion || '')} · ${esc(e.agente)} ${esc(e.capacidad)} · Serie ${esc(e.serie || '—')}</div>
+        <div class="grid2">
+          <div><label>Fecha</label><input name="fecha" type="date" value="${today()}" max="${today()}" required></div>
+          <div><label>Hora</label><input name="hora" type="time" value="${nowTime()}"></div>
+        </div>
+        <label>Inspector</label><input name="inspector" value="${esc(me().nombre)}" required>
+        <div class="row" style="margin-top:8px"><input name="gps" id="ins-gps" class="grow" placeholder="GPS (opcional)" readonly><button type="button" class="btn sec sm" onclick="getGps()">📍 GPS</button></div>
+      </div>
+      <div class="card"><h2>Lista de verificación</h2>
+        <div class="row" style="justify-content:flex-end;gap:6px;margin-bottom:4px"><button type="button" class="btn ghost sm" onclick="allChk('C')">Todo conforme</button></div>
+        ${items.map(k => `
+          <div class="chk"><span class="q">${CHECK_LABELS[k] || k}</span>
+            <div class="seg" data-k="${k}">
+              <button type="button" class="c on" onclick="setChk(this,'C')">✓</button>
+              <button type="button" class="nc" onclick="setChk(this,'NC')">✗</button>
+              <button type="button" class="na" onclick="setChk(this,'NA')">N/A</button>
+            </div>
+          </div>`).join('')}
+        <div style="margin-top:12px">Resultado: <span id="ins-res" class="badge b-ok">Apto</span></div>
+      </div>
+      <div class="card">
+        <label style="margin-top:0">Observaciones</label><textarea name="observaciones" placeholder="Describa las no conformidades y la acción tomada"></textarea>
+        <label>Fotografía (opcional)</label><input type="file" accept="image/*" capture="environment" id="ins-foto">
+      </div>
+      <button class="btn block">Guardar inspección</button>
+    </form>
+  `, { back: true, tab: 'ins' });
+}
+
+function setChk(btn, val) {
+  const seg = btn.parentElement;
+  seg.querySelectorAll('button').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on'); seg.dataset.v = val;
+  const nc = [...document.querySelectorAll('.seg')].some(s => s.dataset.v === 'NC');
+  const r = $('#ins-res'); r.textContent = nc ? 'No Apto' : 'Apto'; r.className = 'badge ' + (nc ? 'b-v' : 'b-ok');
+}
+function allChk(v) { document.querySelectorAll('.seg').forEach(s => setChk(s.querySelector(v === 'C' ? '.c' : '.na'), v)); }
+
+function getGps() {
+  if (!navigator.geolocation) return toast('GPS no disponible.');
+  toast('Obteniendo ubicación…');
+  navigator.geolocation.getCurrentPosition(p => { $('#ins-gps').value = p.coords.latitude.toFixed(6) + ',' + p.coords.longitude.toFixed(6); },
+    () => toast('No se pudo obtener GPS (normal en interior mina).'), { enableHighAccuracy: true, timeout: 15000 });
+}
+
+async function saveInspeccion(ev, extId) {
+  ev.preventDefault();
+  const fd = new FormData(ev.target);
+  const p = { id: uuid(), extintor_id: extId };
+  fd.forEach((v, k) => p[k] = String(v).trim());
+  document.querySelectorAll('.seg').forEach(s => p[s.dataset.k] = s.dataset.v || 'C');
+  const nc = S.data.catalogos.checklist.filter(k => p[k] === 'NC');
+  if (nc.length && !p.observaciones) return toast('Describa las no conformidades en Observaciones.', 3000);
+  const f = $('#ins-foto').files[0];
+  if (f) p.foto = { data: await compressImage(f), mime: 'image/jpeg' };
+  const e = extById(extId);
+  await enqueue('inspeccion.create', p, 'Inspección ' + e.codigo);
+  toast(S.online ? '✓ Inspección guardada.' : '✓ Guardada en el celular. Se enviará al tener señal.', 3000);
+  history.back();
+}
+
+/* ============================ Vista: Servicio ============================ */
+function viewServicio(id) {
+  const e = extById(id);
+  if (!e) return shell('Servicio', '<div class="empty">Extintor no encontrado.</div>', { back: true });
+  shell('Servicio ' + e.codigo, `
+    <form class="card" onsubmit="saveServicio(event,'${e.id}')">
+      <div class="sub">${esc(empName(e.empresa_id))} · ${esc(e.agente)} ${esc(e.capacidad)} · Serie ${esc(e.serie || '—')}</div>
+      <label>Tipo de servicio *</label>
+      <select name="tipo" id="sv-tipo" onchange="svHint('${e.id}')" required>${S.data.catalogos.tiposServicio.map(t => `<option>${t}</option>`).join('')}</select>
+      <div id="sv-rec"><label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" name="incluye_recarga" value="SI" style="width:auto;min-height:auto" checked onchange="svHint('${e.id}')"> Incluye recarga</label></div>
+      <div class="grid2">
+        <div><label>Fecha del servicio *</label><input name="fecha" id="sv-fecha" type="date" value="${today()}" max="${today()}" required onchange="svHint('${e.id}')"></div>
+        <div><label>Próxima fecha</label><input name="proxima_fecha" id="sv-prox" type="date"></div>
+      </div>
+      <p class="sub" id="sv-hint"></p>
+      <div class="grid2">
+        <div><label>Empresa que realizó el servicio</label><input name="proveedor" value="${esc(e.proveedor || '')}"></div>
+        <div><label>N° de certificado</label><input name="nro_certificado"></div>
+        <div><label>Costo (S/.)</label><input name="costo" inputmode="decimal"></div>
+      </div>
+      <label>Certificado (PDF o foto, máx. 4 MB)</label><input type="file" accept="application/pdf,image/*" id="sv-cert">
+      <label>Observaciones</label><textarea name="observaciones"></textarea>
+      <button class="btn block" style="margin-top:16px">Guardar servicio</button>
+    </form>
+  `, { back: true, tab: 'ser' });
+  svHint(e.id);
+}
+
+function svHint(extId) {
+  const e = extById(extId), t = $('#sv-tipo').value, f = $('#sv-fecha').value;
+  $('#sv-rec').classList.toggle('hide', t !== 'Mantenimiento');
+  let calc = '';
+  if (t === 'Mantenimiento') calc = addMonths(f, cfg('MESES_MANTENIMIENTO'));
+  else if (t === 'Recarga') calc = addMonths(f, cfg('MESES_RECARGA'));
+  else if (t === 'Prueba Hidrostática') calc = addMonths(f, 12 * phYears(e.agente));
+  $('#sv-hint').textContent = calc ? 'Si deja vacía la próxima fecha, se usará ' + fdate(calc) + ' (según configuración).' : '';
+}
+
+async function saveServicio(ev, extId) {
+  ev.preventDefault();
+  const fd = new FormData(ev.target);
+  const p = { id: uuid(), extintor_id: extId, incluye_recarga: 'NO' };
+  fd.forEach((v, k) => p[k] = String(v).trim());
+  if (p.tipo !== 'Mantenimiento') p.incluye_recarga = 'NO';
+  const f = $('#sv-cert').files[0];
+  if (f) {
+    if (f.type === 'application/pdf') {
+      if (f.size > 4e6) return toast('El PDF supera 4 MB.');
+      p.certificado = { data: await fileToB64(f), mime: 'application/pdf' };
+    } else p.certificado = { data: await compressImage(f, 1600), mime: 'image/jpeg' };
+  }
+  await enqueue('servicio.create', p, p.tipo + ' ' + extById(extId).codigo);
+  toast(S.online ? '✓ Servicio guardado.' : '✓ Guardado en el celular. Se enviará al tener señal.', 3000);
+  history.back();
+}
+
+/* ============================ Listas de inspecciones y servicios ============================ */
+function viewInspecciones() {
+  const l = (S.data.inspecciones || []).slice().sort((a, b) => (b.fecha + (b.hora || '')).localeCompare(a.fecha + (a.hora || ''))).slice(0, 200);
+  shell('Inspecciones', `
+    <div class="row" style="margin-bottom:12px"><button class="btn grow" onclick="openScanner()">⌗ Escanear QR para inspeccionar</button></div>
+    <div class="card" style="padding:4px 10px"><div class="list">
+      ${l.length ? l.map(i => `<div class="it" onclick="showInspeccion('${i.id}')">
+        <span class="dot ${i.resultado === 'Apto' ? 'd-ok' : 'd-v'}"></span>
+        <div class="grow"><b>${esc(i.codigo)}</b> <span class="sub">${fdate(i.fecha)} ${esc(i.hora || '')}</span>${i._pending ? ' <span class="badge b-i">pendiente</span>' : ''}
+        <div class="sub">${esc(i.inspector)} · ${esc(empName(i.empresa_id))}</div></div>
+        <span class="badge ${i.resultado === 'Apto' ? 'b-ok' : 'b-v'}">${esc(i.resultado)}</span></div>`).join('') : '<div class="empty">Aún no hay inspecciones.</div>'}
+    </div></div>
+    <p class="sub">Para inspeccionar, escanee el QR o abra el extintor desde la lista y pulse "Inspeccionar".</p>
+  `, { tab: 'ins' });
+}
+
+function viewServicios() {
+  const l = (S.data.servicios || []).slice().sort((a, b) => String(b.fecha).localeCompare(a.fecha)).slice(0, 200);
+  shell('Servicios', `
+    <div class="card" style="padding:4px 10px"><div class="list">
+      ${l.length ? l.map(i => `<div class="it" onclick="go('#/ext/${i.extintor_id}')"><div class="grow"><b>${esc(i.codigo)}</b> · ${esc(i.tipo)}${i._pending ? ' <span class="badge b-i">pendiente</span>' : ''}
+        <div class="sub">${fdate(i.fecha)} · ${esc(i.proveedor || '')} · ${esc(empName(i.empresa_id))}</div></div></div>`).join('') : '<div class="empty">Aún no hay servicios registrados.</div>'}
+    </div></div>
+    <p class="sub">Para registrar un mantenimiento, recarga o prueba hidrostática, abra el extintor y pulse "Servicio".</p>
+  `, { tab: 'ser', back: isAdmin() });
+}
+
+/* ============================ Entregas (admin) ============================ */
+function viewEntregas() {
+  if (!isAdmin()) return viewDashboard();
+  const l = (S.data.entregas || []).slice().sort((a, b) => String(b.creado || '').localeCompare(a.creado || ''));
+  shell('Entregas', `
+    <div class="card" style="padding:4px 10px"><div class="list">
+      ${l.length ? l.map(r => { const n = safeJson(r.extintores).length; return `<div class="it" onclick="printActa('${r.id}')"><div class="grow"><b>${esc(r.numero)}</b> · ${fdate(r.fecha)}
+        <div class="sub">${esc(r.receptor)} · ${esc(r.empresa_receptora)} · ${n} extintor(es)</div></div><span class="btn sec sm">PDF</span></div>`; }).join('') : '<div class="empty">Sin actas de entrega.</div>'}
+    </div></div>
+    <a class="btn sec sm" href="#/servicios">Ver servicios registrados</a>
+    <button class="btn fab" onclick="go('#/entrega-nueva')">＋ Nueva entrega</button>
+  `, { tab: 'ent' });
+}
+
+const ENT_SEL = new Set();
+function viewEntregaNueva() {
+  ENT_SEL.clear();
+  shell('Nueva entrega', `
+    <form class="card" onsubmit="saveEntrega(event)">
+      <div class="grid2">
+        <div><label>Quién recibe *</label><input name="receptor" required></div>
+        <div><label>DNI</label><input name="documento" inputmode="numeric"></div>
+        <div><label>Empresa que recibe *</label><input name="empresa_receptora" required></div>
+        <div><label>Área</label><input name="area"></div>
+        <div><label>Teléfono</label><input name="telefono" inputmode="tel"></div>
+        <div><label>Fecha</label><input name="fecha" type="date" value="${today()}"></div>
+      </div>
+      <label>Observaciones</label><textarea name="observaciones"></textarea>
+      <label>Extintores entregados * <span id="ent-n" class="badge b-i">0</span></label>
+      <input placeholder="Buscar código…" oninput="renderEntSel(this.value)">
+      <div id="ent-list" class="list" style="max-height:300px;overflow:auto;margin-top:6px"></div>
+      <button class="btn block" style="margin-top:16px">Registrar entrega</button>
+    </form>
+  `, { back: true, tab: 'ent' });
+  renderEntSel('');
+}
+
+function renderEntSel(q) {
+  q = q.toLowerCase();
+  const l = activos().filter(e => !q || [e.codigo, e.serie, empName(e.empresa_id)].join(' ').toLowerCase().includes(q)).slice(0, 150);
+  $('#ent-list').innerHTML = l.map(e => `<label class="it" style="margin:0;color:var(--ink)"><input type="checkbox" style="width:22px;min-height:22px" ${ENT_SEL.has(e.id) ? 'checked' : ''} onchange="this.checked?ENT_SEL.add('${e.id}'):ENT_SEL.delete('${e.id}');$('#ent-n').textContent=ENT_SEL.size">
+    <div class="grow"><b>${esc(e.codigo)}</b> <span class="sub">${esc(e.serie)} · ${esc(e.agente)} ${esc(e.capacidad)} · ${esc(empName(e.empresa_id))}</span></div></label>`).join('');
+}
+
+async function saveEntrega(ev) {
+  ev.preventDefault();
+  if (!ENT_SEL.size) return toast('Seleccione al menos un extintor.');
+  const fd = new FormData(ev.target), p = { id: uuid() };
+  fd.forEach((v, k) => p[k] = String(v).trim());
+  p.extintores = [...ENT_SEL].map(id => { const e = extById(id); return { id: e.id, codigo: e.codigo, serie: e.serie, agente: e.agente, clase: e.clase, capacidad: e.capacidad, estado: e.estado, empresa: empName(e.empresa_id), prox_mantenimiento: e.prox_mantenimiento, prox_ph: e.prox_ph }; });
+  await enqueue('entrega.create', p, 'Entrega a ' + p.receptor);
+  toast('Entrega registrada.');
+  go('#/entregas');
+  setTimeout(() => printActa(p.id), 300);
+}
+
+function safeJson(s) { try { return typeof s === 'string' ? JSON.parse(s || '[]') : (s || []); } catch (e) { return []; } }
+
+function printActa(id) {
+  const r = (S.data.entregas || []).find(x => x.id === id); if (!r) return;
+  const ex = safeJson(r.extintores);
+  const w = window.open('', '_blank');
+  if (!w) return toast('Permita ventanas emergentes para generar el PDF.');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Acta ${esc(r.numero)}</title>
+  <style>body{font:12px Arial;margin:28px;color:#111}h1{font-size:16px;margin:0}h2{font-size:13px;margin:18px 0 6px}
+  table{width:100%;border-collapse:collapse}td,th{border:1px solid #999;padding:5px;text-align:left}th{background:#eee}
+  .hd{display:flex;justify-content:space-between;border-bottom:3px solid #b91c1c;padding-bottom:8px}.f{display:flex;gap:40px;margin-top:70px}
+  .f div{flex:1;border-top:1px solid #000;text-align:center;padding-top:4px}@media print{button{display:none}}</style></head><body>
+  <div class="hd"><div><h1>ACTA DE ENTREGA DE EXTINTORES</h1><div>${esc(cfg('ORGANIZACION'))}</div></div><div style="text-align:right"><b>${esc(r.numero)}</b><br>Fecha: ${fdate(r.fecha)}</div></div>
+  <h2>Datos de quien recibe</h2>
+  <table><tr><th>Nombre</th><td>${esc(r.receptor)}</td><th>DNI</th><td>${esc(r.documento)}</td></tr>
+  <tr><th>Empresa</th><td>${esc(r.empresa_receptora)}</td><th>Área</th><td>${esc(r.area)}</td></tr>
+  <tr><th>Teléfono</th><td>${esc(r.telefono)}</td><th>Entregado por</th><td>${esc(me().nombre)}</td></tr></table>
+  <h2>Extintores entregados (${ex.length})</h2>
+  <table><tr><th>#</th><th>Código</th><th>Serie</th><th>Agente</th><th>Clase</th><th>Capacidad</th><th>Estado</th><th>Próx. mant.</th><th>Próx. PH</th></tr>
+  ${ex.map((e, i) => `<tr><td>${i + 1}</td><td>${esc(e.codigo)}</td><td>${esc(e.serie)}</td><td>${esc(e.agente)}</td><td>${esc(e.clase)}</td><td>${esc(e.capacidad)}</td><td>${esc(e.estado)}</td><td>${fdate(e.prox_mantenimiento)}</td><td>${fdate(e.prox_ph)}</td></tr>`).join('')}</table>
+  ${r.observaciones ? `<h2>Observaciones</h2><p>${esc(r.observaciones)}</p>` : ''}
+  <p>Quien recibe declara recibir los extintores en las condiciones indicadas y se compromete a su cuidado e inspección mensual.</p>
+  <div class="f"><div>Entregué conforme<br>${esc(me().nombre)}</div><div>Recibí conforme<br>${esc(r.receptor)}${r.documento ? ' — DNI ' + esc(r.documento) : ''}</div></div>
+  <p style="margin-top:30px"><button onclick="print()">Imprimir / Guardar PDF</button></p>
+  <script>setTimeout(function(){print()},400)<\/script></body></html>`);
+  w.document.close();
+}
+
+/* ============================ QR: etiquetas y escáner ============================ */
+let QR_IDS = [];
+function printQrFiltered() { QR_IDS = filteredList().map(e => e.id); go('#/qr/lista'); }
+
+function viewQrPrint() {
+  const a = location.hash.split('/')[2];
+  const ids = a && a !== 'lista' ? [a] : QR_IDS;
+  const l = ids.map(extById).filter(Boolean);
+  if (typeof qrcode === 'undefined') return shell('Etiquetas QR', '<div class="errbox">El generador de QR no cargó. Abra la app una vez con señal.</div>', { back: true });
+  const qr = txt => { const q = qrcode(0, 'M'); q.addData(txt); q.make(); return q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); };
+  shell('Etiquetas QR (' + l.length + ')', `
+    <div class="row" style="margin-bottom:12px"><button class="btn grow" onclick="printLabels()">🖨 Imprimir etiquetas</button></div>
+    <div id="labels" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
+      ${l.map(e => `<div class="card" style="text-align:center;padding:10px;margin:0"><div style="width:120px;margin:0 auto">${qr('EMF:' + e.id)}</div><b style="font-size:14px">${esc(e.codigo)}</b><div class="sub">${esc(empName(e.empresa_id))}</div></div>`).join('')}
+    </div>`, { back: true, tab: 'ext' });
+}
+
+function printLabels() {
+  const w = window.open('', '_blank'); if (!w) return toast('Permita ventanas emergentes.');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Etiquetas QR</title><style>
+    body{font:11px Arial;margin:10mm}.g{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm}
+    .l{border:1px dashed #999;padding:3mm;text-align:center;break-inside:avoid}.l svg{width:30mm;height:30mm}b{font-size:13px;display:block}
+  </style></head><body><div class="g">${[...document.querySelectorAll('#labels .card')].map(c => `<div class="l">${c.innerHTML}</div>`).join('')}</div>
+  <script>setTimeout(function(){print()},300)<\/script></body></html>`);
+  w.document.close();
+}
+
+let SCAN_STREAM = null;
+async function openScanner() {
+  modal(`<h3 style="margin-top:0">Escanear QR del extintor</h3>
+    <div class="scan"><video id="scan-v" playsinline muted></video></div>
+    <p class="sub" id="scan-msg">Apunte la cámara a la etiqueta.</p>
+    <div class="row"><input id="scan-code" class="grow" placeholder="…o escriba el código"><button class="btn sm" onclick="scanFound($('#scan-code').value)">Buscar</button></div>
+    <button class="btn sec block" style="margin-top:10px" onclick="closeModal()">Cancelar</button>`, stopScanner);
+  if (!('BarcodeDetector' in window) || !navigator.mediaDevices) { $('#scan-msg').textContent = 'Este celular no lee QR desde la app. Escriba el código o use la cámara del celular.'; $('#scan-v').classList.add('hide'); return; }
+  try {
+    SCAN_STREAM = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const v = $('#scan-v'); v.srcObject = SCAN_STREAM; await v.play();
+    const det = new BarcodeDetector({ formats: ['qr_code'] });
+    const loop = async () => {
+      if (!SCAN_STREAM) return;
+      try { const c = await det.detect(v); if (c.length) return scanFound(c[0].rawValue); } catch (e) {}
+      requestAnimationFrame(loop);
+    };
+    loop();
+  } catch (e) { $('#scan-msg').textContent = 'No se pudo abrir la cámara. Escriba el código.'; }
+}
+function stopScanner() { if (SCAN_STREAM) { SCAN_STREAM.getTracks().forEach(t => t.stop()); SCAN_STREAM = null; } }
+function scanFound(txt) {
+  txt = String(txt || '').trim();
+  let e = null;
+  const m = txt.match(/EMF:([\w-]+)/); if (m) e = extById(m[1]);
+  if (!e) { const nn = s => String(s).replace(/[\s\-_.\/]+/g, '').toUpperCase(); e = (S.data.extintores || []).find(x => nn(x.codigo) === nn(txt)); }
+  if (!e) { toast('No se encontró el extintor: ' + txt.slice(0, 40)); return; }
+  closeModal();
+  go('#/ext/' + e.id);
+}
+
+/* ============================ Usuarios (admin) ============================ */
+function viewUsuarios() {
+  if (!isAdmin()) return viewDashboard();
+  const l = (S.data.usuarios || []).slice().sort((a, b) => String(a.nombre).localeCompare(b.nombre));
+  const sinEmp = l.filter(u => u.rol === 'Inspector' && !u.empresa_id).length;
+  shell('Usuarios (' + l.length + ')', `
+    ${sinEmp ? `<div class="warnbox">${sinEmp} inspector(es) sin empresa / área asignada: no verán extintores hasta que se les asigne.</div>` : ''}
+    <input placeholder="Buscar…" oninput="document.querySelectorAll('#ul .it').forEach(x=>x.classList.toggle('hide',!x.textContent.toLowerCase().includes(this.value.toLowerCase())))">
+    <div class="card" style="padding:4px 10px;margin-top:10px"><div class="list" id="ul">
+      ${l.map(u => `<div class="it" onclick="editUser('${u.id}')"><div class="grow"><b>${esc(u.nombre || u.email)}</b> ${u.estado !== 'Activo' ? '<span class="badge b-g">Inactivo</span>' : ''}
+        <div class="sub">${esc(u.email)} · ${esc(u.rol)} · ${u.empresa_id ? esc(empName(u.empresa_id)) : '<span style="color:var(--bad)">sin empresa</span>'}</div></div></div>`).join('')}
+    </div></div>
+    <button class="btn fab" onclick="editUser('')">＋ Usuario</button>
+  `, { back: true, tab: 'aj' });
+}
+
+function editUser(id) {
+  const u = id ? S.data.usuarios.find(x => x.id === id) : {};
+  modal(`<h3 style="margin-top:0">${id ? 'Editar usuario' : 'Nuevo usuario'}</h3>
+    <form onsubmit="saveUser(event,'${id}')">
+      <label>Correo *</label><input name="email" type="email" required value="${esc(u.email || '')}">
+      <label>Nombre completo *</label><input name="nombre" required value="${esc(u.nombre || '')}">
+      <div class="grid2">
+        <div><label>Rol</label><select name="rol">${S.data.catalogos.roles.map(r => `<option ${(u.rol || 'Inspector') === r ? 'selected' : ''}>${r}</option>`).join('')}</select></div>
+        <div><label>Estado</label><select name="estado"><option ${u.estado !== 'Inactivo' ? 'selected' : ''}>Activo</option><option ${u.estado === 'Inactivo' ? 'selected' : ''}>Inactivo</option></select></div>
+      </div>
+      <label>Empresa / Área (obligatorio para Inspector)</label>
+      <select name="empresa_id"><option value="">—</option>${(S.data.empresas || []).slice().sort((a, b) => a.nombre.localeCompare(b.nombre)).map(e => `<option value="${esc(e.id)}" ${u.empresa_id === e.id ? 'selected' : ''}>${esc(e.nombre)}</option>`).join('')}</select>
+      <p class="sub">Administrador: todo. Supervisor: ve todo, inspecciona y registra servicios. Inspector: solo su empresa / área.</p>
+      <button class="btn block">Guardar</button>
+    </form>
+    ${id ? `<div class="row" style="gap:8px;margin-top:10px"><button class="btn sec grow" onclick="resetUser('${id}')">Restablecer contraseña</button>
+      ${id !== me().id ? `<button class="btn sec" style="color:var(--bad)" onclick="delUser('${id}')">Eliminar</button>` : ''}</div>` : ''}
+    <button class="btn ghost block" style="margin-top:6px" onclick="closeModal()">Cancelar</button>`);
+}
+
+async function saveUser(ev, id) {
+  ev.preventDefault();
+  const fd = new FormData(ev.target), p = { id: id || undefined };
+  fd.forEach((v, k) => p[k] = String(v).trim());
+  try {
+    const r = await onlineOp('usuario.save', p);
+    closeModal();
+    if (r.clave_temporal) showTempPass(p.email, p.nombre, r.clave_temporal); else toast('Usuario guardado.');
+    viewUsuarios();
+  } catch (e) { toast(e.offline ? 'Necesita señal para gestionar usuarios.' : e.message, 3500); }
+}
+
+async function resetUser(id) {
+  const u = S.data.usuarios.find(x => x.id === id);
+  if (!confirm('¿Generar una nueva contraseña temporal para ' + u.email + '?')) return;
+  try { const r = await onlineOp('usuario.reset', { id: id }); closeModal(); showTempPass(u.email, u.nombre, r.clave_temporal); }
+  catch (e) { toast(e.offline ? 'Necesita señal.' : e.message, 3500); }
+}
+
+async function delUser(id) {
+  const u = S.data.usuarios.find(x => x.id === id);
+  if (!confirm('¿Eliminar al usuario ' + u.email + '?')) return;
+  try { await onlineOp('usuario.delete', { id: id }); closeModal(); toast('Usuario eliminado.'); viewUsuarios(); }
+  catch (e) { toast(e.offline ? 'Necesita señal.' : e.message, 3500); }
+}
+
+function showTempPass(email, nombre, pass) {
+  const url = location.href.split('#')[0];
+  const msg = `Hola ${nombre || ''}, tu acceso a EmerMine Fire:\nApp: ${url}\nUsuario: ${email}\nContraseña temporal: ${pass}\nAl ingresar te pedirá crear tu propia contraseña.`;
+  modal(`<h3 style="margin-top:0">Contraseña temporal</h3>
+    <p>Usuario: <b>${esc(email)}</b></p>
+    <p style="font-size:26px;font-weight:700;letter-spacing:2px;text-align:center;background:#f3f4f6;padding:12px;border-radius:10px">${esc(pass)}</p>
+    <p class="sub">Compártala con el usuario. Al ingresar se le pedirá crear su propia contraseña. No se volverá a mostrar.</p>
+    <a class="btn block" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(msg)}">Enviar por WhatsApp</a>
+    <button class="btn sec block" style="margin-top:8px" onclick="navigator.clipboard&&navigator.clipboard.writeText(${esc(JSON.stringify(msg))});toast('Copiado')">Copiar mensaje</button>
+    <button class="btn ghost block" style="margin-top:6px" onclick="closeModal()">Cerrar</button>`);
+}
+
+/* ============================ Empresas (admin) ============================ */
+function viewEmpresas() {
+  if (!isAdmin()) return viewDashboard();
+  const cnt = {}; (S.data.extintores || []).forEach(e => cnt[e.empresa_id] = (cnt[e.empresa_id] || 0) + 1);
+  const ucnt = {}; (S.data.usuarios || []).forEach(u => ucnt[u.empresa_id] = (ucnt[u.empresa_id] || 0) + 1);
+  const l = (S.data.empresas || []).slice().sort((a, b) => a.nombre.localeCompare(b.nombre));
+  shell('Empresas / Áreas (' + l.length + ')', `
+    <div class="card" style="padding:4px 10px"><div class="list">
+      ${l.map(e => `<div class="it" onclick="editEmp('${e.id}')"><div class="grow"><b>${esc(e.nombre)}</b> ${e.activo === 'NO' ? '<span class="badge b-g">Inactiva</span>' : ''}
+        <div class="sub">${cnt[e.id] || 0} extintores · ${ucnt[e.id] || 0} usuarios</div></div></div>`).join('')}
+    </div></div>
+    <p class="sub">Use una entrada por empresa contratista o área (ej. "UNICON", "PAS / Mantenimiento"). Los inspectores solo ven los extintores de su empresa / área.</p>
+    <button class="btn fab" onclick="editEmp('')">＋ Empresa</button>
+  `, { back: true, tab: 'aj' });
+}
+
+function editEmp(id) {
+  const e = id ? S.data.empresas.find(x => x.id === id) : {};
+  modal(`<h3 style="margin-top:0">${id ? 'Editar' : 'Nueva'} empresa / área</h3>
+    <form onsubmit="saveEmp(event,'${id}')">
+      <label>Nombre *</label><input name="nombre" required value="${esc(e.nombre || '')}">
+      <label>Activa</label><select name="activo"><option value="SI">Sí</option><option value="NO" ${e.activo === 'NO' ? 'selected' : ''}>No</option></select>
+      <button class="btn block" style="margin-top:14px">Guardar</button>
+    </form>
+    ${id ? `<button class="btn sec block" style="margin-top:8px;color:var(--bad)" onclick="delEmp('${id}')">Eliminar</button>` : ''}
+    <button class="btn ghost block" style="margin-top:6px" onclick="closeModal()">Cancelar</button>`);
+}
+async function saveEmp(ev, id) {
+  ev.preventDefault(); const fd = new FormData(ev.target);
+  try { await onlineOp('empresa.save', { id: id || undefined, nombre: fd.get('nombre'), activo: fd.get('activo') }); closeModal(); toast('Guardado.'); viewEmpresas(); }
+  catch (e) { toast(e.offline ? 'Necesita señal.' : e.message, 3500); }
+}
+async function delEmp(id) {
+  if (!confirm('¿Eliminar esta empresa / área?')) return;
+  try { await onlineOp('empresa.delete', { id: id }); closeModal(); toast('Eliminada.'); viewEmpresas(); }
+  catch (e) { toast(e.offline ? 'Necesita señal.' : e.message, 3500); }
+}
+
+/* ============================ Pendientes y ajustes ============================ */
+function viewPendientes() {
+  shell('Pendientes de envío (' + S.queue.length + ')', `
+    <div class="card" style="padding:4px 10px"><div class="list">
+      ${S.queue.length ? S.queue.map(o => `<div class="it" style="cursor:default"><div class="grow"><b>${esc(o.label || o.type)}</b>
+        <div class="sub">${new Date(o.created).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' })}</div>
+        ${o.error ? `<div class="sub" style="color:var(--bad)">Error: ${esc(o.error)}</div>` : ''}</div>
+        ${o.error ? `<button class="btn sec sm" onclick="retryOp('${o.opId}')">Reintentar</button>` : ''}
+        <button class="btn ghost sm" onclick="dropOp('${o.opId}')">Descartar</button></div>`).join('') : '<div class="empty">Todo está sincronizado ✓</div>'}
+    </div></div>
+    ${S.queue.length ? '<button class="btn block" onclick="trySync(true)">Sincronizar ahora</button>' : ''}
+    <p class="sub">Los registros hechos sin señal se guardan en este celular y se envían solos al recuperar conexión. No cierre sesión ni borre los datos del navegador mientras haya pendientes.</p>
+  `, { back: true, tab: 'aj' });
+}
+async function retryOp(id) { const o = S.queue.find(x => x.opId === id); if (o) { delete o.error; await DB.set('queue', S.queue); trySync(true); viewPendientes(); } }
+async function dropOp(id) {
+  if (!confirm('¿Descartar este registro? No se enviará al servidor.')) return;
+  S.queue = S.queue.filter(x => x.opId !== id); await DB.set('queue', S.queue);
+  try { await refresh(true); } catch (e) {}
+  viewPendientes();
+}
+
+function viewAjustes() {
+  const c = S.data.config || {};
+  const keys = ['DIAS_INSPECCION', 'MESES_MANTENIMIENTO', 'MESES_RECARGA', 'DIAS_AVISO', 'DIAS_AVISO_PH', 'CORREOS_ALERTA', 'ALERTA_NO_APTO', 'ORGANIZACION'];
+  const ph = Object.keys(c).filter(k => k.indexOf('PH_ANOS_') === 0);
+  shell('Más', `
+    <div class="card">
+      <b>${esc(me().nombre)}</b><div class="sub">${esc(me().email)} · ${esc(me().rol)}${me().empresa_id ? ' · ' + esc(empName(me().empresa_id)) : ''}</div>
+    </div>
+    <div class="card list" style="padding:4px 10px">
+      <div class="it" onclick="go('#/pendientes')"><div class="grow">Pendientes de envío</div><span class="badge ${S.queue.length ? 'b-p' : 'b-ok'}">${S.queue.length}</span></div>
+      <div class="it" onclick="go('#/servicios')"><div class="grow">Servicios registrados</div>›</div>
+      ${isAdmin() ? `<div class="it" onclick="go('#/usuarios')"><div class="grow">Usuarios</div>›</div>
+      <div class="it" onclick="go('#/empresas')"><div class="grow">Empresas / Áreas</div>›</div>
+      <div class="it" onclick="go('#/entregas')"><div class="grow">Entregas</div>›</div>` : ''}
+      <div class="it" onclick="viewChangePassword(false)"><div class="grow">Cambiar contraseña</div>›</div>
+      <div class="it" onclick="trySync(true)"><div class="grow">Actualizar datos ahora</div>⟳</div>
+    </div>
+    ${isAdmin() ? `<form class="card" onsubmit="saveCfg(event)"><h2>Parámetros</h2>
+      <div class="grid2">${keys.concat(ph).map(k => `<div><label>${esc(k.replace(/_/g, ' ').toLowerCase())}</label><input name="${esc(k)}" value="${esc(c[k] || '')}"></div>`).join('')}</div>
+      <p class="sub">Valores por defecto de prueba hidrostática: verifíquelos con la NTP 350.043-1 y su procedimiento interno.</p>
+      <button class="btn block">Guardar parámetros</button></form>` : ''}
+    <button class="btn sec block" onclick="logout()">Cerrar sesión</button>
+    <p class="sub" style="text-align:center;margin-top:14px">EmerMine Fire v${APP_VERSION} · servidor v${esc(S.data.version || '')}</p>
+  `, { tab: 'aj' });
+}
+async function saveCfg(ev) {
+  ev.preventDefault(); const fd = new FormData(ev.target), p = {}; fd.forEach((v, k) => p[k] = String(v).trim());
+  try { await onlineOp('config.save', p); toast('Parámetros guardados.'); }
+  catch (e) { toast(e.offline ? 'Necesita señal.' : e.message, 3500); }
+}
+
+/* ============================ Modal, imágenes ============================ */
+let MODAL_CLOSE = null;
+function modal(html, onClose) {
+  closeModal();
+  const m = document.createElement('div'); m.className = 'modal';
+  m.innerHTML = `<div class="box">${html}</div>`;
+  m.addEventListener('click', ev => { if (ev.target === m) closeModal(); });
+  document.body.appendChild(m); MODAL_CLOSE = onClose || null;
+}
+function closeModal() { const m = document.querySelector('.modal'); if (m) m.remove(); if (MODAL_CLOSE) { MODAL_CLOSE(); MODAL_CLOSE = null; } }
+
+function compressImage(file, max) {
+  max = max || 1024;
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.6));
+    };
+    img.onerror = () => rej(new Error('No se pudo leer la imagen.'));
+    img.src = url;
+  });
+}
+function fileToB64(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); }); }
+
+/* ============================ Inicio ============================ */
+(async function init() {
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  try {
+    S.session = await DB.get('session') || null;
+    S.data = await DB.get('data') || null;
+    S.queue = await DB.get('queue') || [];
+    S.lastSync = await DB.get('lastSync') || null;
+  } catch (e) { console.warn(e); }
+  route();
+  if (S.session) {
+    try { if (S.queue.length) await trySync(); else await refresh(true); }
+    catch (e) { if (!S.data) $('#app').innerHTML = '<div class="empty" style="margin-top:25vh">Sin conexión y sin datos guardados.<br>Abra la app con señal la primera vez.<br><br><button class="btn" onclick="location.reload()">Reintentar</button></div>'; }
+  }
+  window.addEventListener('online', () => trySync());
+  setInterval(() => { if (S.queue.some(o => !o.error)) trySync(); }, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && S.queue.some(o => !o.error)) trySync(); });
+})();
+</script>
+</body>
+</html>
