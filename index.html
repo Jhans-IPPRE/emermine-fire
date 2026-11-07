@@ -3,95 +3,209 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#b91c1c">
+<meta name="theme-color" content="#0B1724">
 <title>EmerMine Fire</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="logo.js"></script>
+<script>try{var t=localStorage.getItem('emf-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <style>
+/* ===== Tokens: claro por defecto, oscuro "interior mina" ===== */
 :root{
-  --bg:#f3f4f6; --card:#fff; --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
-  --red:#b91c1c; --red2:#dc2626; --ok:#15803d; --okbg:#dcfce7; --warn:#b45309; --warnbg:#fef3c7;
-  --bad:#b91c1c; --badbg:#fee2e2; --info:#1d4ed8; --infobg:#dbeafe; --gray:#4b5563; --graybg:#e5e7eb;
+  --bg:#EDF2F6; --bg2:#E3EAF0; --surface:#FFFFFF; --surface2:#F5F8FB; --line:#D2DDE6; --line2:#B9C9D6;
+  --ink:#0F2233; --muted:#587084; --faint:#8A9DAE;
+  --accent:#1675AE; --accent-ink:#FFFFFF; --accent-soft:rgba(22,117,174,.10); --glow:rgba(22,117,174,.18);
+  --ok:#11855A; --ok-soft:rgba(17,133,90,.12); --warn:#B26B00; --warn-soft:rgba(214,138,0,.15);
+  --bad:#CC3527; --bad-soft:rgba(204,53,39,.11); --na:#6B7D8C; --na-soft:rgba(107,125,140,.14);
+  --bar:#0F2233; --bar-ink:#FFFFFF; --plate:#FFFFFF;
+  --shadow:0 1px 0 rgba(15,34,51,.04),0 6px 18px -10px rgba(15,34,51,.18);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B1724; --bg2:#0F1E2E; --surface:#122437; --surface2:#172C42; --line:#20384F; --line2:#2C4A66;
+  --ink:#E4EDF5; --muted:#8EA6BC; --faint:#5F7A92;
+  --accent:#3AA8E8; --accent-ink:#04121E; --accent-soft:rgba(58,168,232,.13); --glow:rgba(58,168,232,.30);
+  --ok:#3DD598; --ok-soft:rgba(61,213,152,.14); --warn:#F7B947; --warn-soft:rgba(247,185,71,.15);
+  --bad:#FF6152; --bad-soft:rgba(255,97,82,.15); --na:#8EA0B1; --na-soft:rgba(142,160,177,.14);
+  --bar:#081320; --bar-ink:#E4EDF5; --plate:#F4F7FA;
+  --shadow:0 0 0 1px rgba(58,168,232,.04),0 10px 26px -14px rgba(0,0,0,.7);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0B1724; --bg2:#0F1E2E; --surface:#122437; --surface2:#172C42; --line:#20384F; --line2:#2C4A66;
+  --ink:#E4EDF5; --muted:#8EA6BC; --faint:#5F7A92;
+  --accent:#3AA8E8; --accent-ink:#04121E; --accent-soft:rgba(58,168,232,.13); --glow:rgba(58,168,232,.30);
+  --ok:#3DD598; --ok-soft:rgba(61,213,152,.14); --warn:#F7B947; --warn-soft:rgba(247,185,71,.15);
+  --bad:#FF6152; --bad-soft:rgba(255,97,82,.15); --na:#8EA0B1; --na-soft:rgba(142,160,177,.14);
+  --bar:#081320; --bar-ink:#E4EDF5; --plate:#F4F7FA;
+  --shadow:0 0 0 1px rgba(58,168,232,.04),0 10px 26px -14px rgba(0,0,0,.7);
+  color-scheme:dark;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
-button,input,select,textarea{font:inherit}
-a{color:var(--info)}
-header{position:sticky;top:0;z-index:20;background:var(--red);color:#fff;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px}
-header h1{font-size:17px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-header .back{background:none;border:0;color:#fff;font-size:22px;padding:0 6px;cursor:pointer}
-.net{font-size:12px;padding:3px 8px;border-radius:99px;background:rgba(255,255,255,.2);white-space:nowrap;cursor:pointer;border:0;color:#fff}
-.net.off{background:#111827}
-main{max-width:860px;margin:0 auto;padding:12px 12px 90px}
-nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:20;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
-nav.tabs a{flex:1;text-align:center;padding:8px 2px 7px;color:var(--muted);text-decoration:none;font-size:11px}
-nav.tabs a b{display:block;font-size:20px;line-height:1.2}
-nav.tabs a.on{color:var(--red);font-weight:600}
-.card{background:var(--card);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
-.card h2{font-size:15px;margin:0 0 10px}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:
+  radial-gradient(1200px 500px at 110% -10%,var(--accent-soft),transparent 60%),
+  linear-gradient(var(--bg),var(--bg));min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-family:"Chakra Petch","Barlow",sans-serif;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+
+/* ===== Barra superior ===== */
+header{position:sticky;top:0;z-index:20;background:var(--bar);color:var(--bar-ink);
+  padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid rgba(58,168,232,.35);box-shadow:0 1px 0 rgba(58,168,232,.12),0 8px 24px -16px rgba(0,0,0,.6)}
+header h1{font:600 18px/1.2 "Chakra Petch",sans-serif;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .back{background:none;border:0;color:inherit;width:36px;height:36px;border-radius:10px;cursor:pointer;display:grid;place-items:center}
+header .back:hover{background:rgba(255,255,255,.08)}
+.plate{background:var(--plate);border-radius:8px;padding:3px 7px;display:flex;align-items:center;height:34px;flex:none}
+.plate img{height:26px;display:block}
+.iconbtn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:inherit;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;cursor:pointer;flex:none}
+.iconbtn:hover{background:rgba(255,255,255,.12)}
+.net{font:500 12px/1 "Barlow",sans-serif;padding:7px 10px;border-radius:99px;border:1px solid rgba(61,213,152,.45);color:#9FF0C9;background:rgba(61,213,152,.08);white-space:nowrap;cursor:pointer;display:flex;gap:6px;align-items:center}
+.net i{width:7px;height:7px;border-radius:50%;background:#3DD598;box-shadow:0 0 8px #3DD598}
+.net.off{border-color:rgba(247,185,71,.5);color:#FFD98A;background:rgba(247,185,71,.08)}
+.net.off i{background:#F7B947;box-shadow:0 0 8px #F7B947}
+@media (max-width:420px){.net .t{display:none}.plate img{height:22px}}
+
+main{max-width:900px;margin:0 auto;padding:16px 14px 104px}
+
+/* ===== Navegación inferior ===== */
+nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:20;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);display:flex;padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
+nav.tabs a{flex:1;text-align:center;padding:6px 2px;color:var(--muted);text-decoration:none;font-size:12px;font-weight:500;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav.tabs a svg{width:22px;height:22px}
+nav.tabs a.on{color:var(--accent);background:var(--accent-soft)}
+
+/* ===== Superficies ===== */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card h2{font:600 16px/1.25 "Chakra Petch",sans-serif;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.card h2 .hint{font:400 13px "Barlow",sans-serif;color:var(--muted);margin-left:auto}
 .row{display:flex;gap:8px;align-items:center}
 .row.wrap{flex-wrap:wrap}
 .grow{flex:1;min-width:0}
-.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
-@media(min-width:640px){.kpis{grid-template-columns:repeat(4,1fr)}}
-.kpi{background:#fff;border-radius:12px;padding:12px;border-left:4px solid var(--line);cursor:pointer}
-.kpi .n{font-size:26px;font-weight:700;line-height:1.1}
-.kpi .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.02em}
-.kpi.ok{border-color:var(--ok)}.kpi.bad{border-color:var(--bad)}.kpi.warn{border-color:var(--warn)}.kpi.info{border-color:var(--info)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;padding:11px 16px;background:var(--red);color:#fff;font-weight:600;cursor:pointer;text-decoration:none;min-height:44px}
-.btn.sec{background:#fff;color:var(--ink);border:1px solid var(--line)}
-.btn.ghost{background:transparent;color:var(--red);padding:8px 10px;min-height:auto}
-.btn.dark{background:#111827}
-.btn.sm{padding:7px 11px;min-height:34px;font-size:13px}
-.btn.block{width:100%}
-.btn:disabled{opacity:.5}
-label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
-input,select,textarea{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:10px;background:#fff;min-height:44px}
-textarea{min-height:70px}
-input:focus,select:focus,textarea:focus{outline:2px solid #fca5a5;border-color:var(--red)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
-@media(max-width:420px){.grid2{grid-template-columns:1fr}}
-.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
-.b-ok{background:var(--okbg);color:var(--ok)}.b-p{background:var(--warnbg);color:var(--warn)}.b-v{background:var(--badbg);color:var(--bad)}
-.b-i{background:var(--infobg);color:var(--info)}.b-g{background:var(--graybg);color:var(--gray)}
-.list .it{display:flex;gap:10px;align-items:center;padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer}
-.list .it:last-child{border-bottom:0}
-.dot{width:12px;height:12px;border-radius:50%;flex:none}
-.d-ok{background:var(--ok)}.d-p{background:#f59e0b}.d-v{background:var(--bad)}.d-g{background:#9ca3af}
-.sub{font-size:12px;color:var(--muted)}
+.sub{font-size:13px;color:var(--muted)}
 .muted{color:var(--muted)}
-.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin:8px 0}
-.chip{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 12px;font-size:13px;white-space:nowrap;cursor:pointer}
-.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-th{font-size:11px;color:var(--muted);text-transform:uppercase}
+
+/* ===== Manómetro (tablero) ===== */
+.gauge-card{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,var(--surface) 0%,var(--surface2) 100%)}
+.gauge-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.gauge{width:220px;max-width:100%;flex:none}
+.gauge text{fill:var(--ink)}
+.gauge .lbl{fill:var(--faint);font:500 11px "Barlow",sans-serif}
+.gauge-info{flex:1;min-width:200px}
+.gauge-info .big{font:700 44px/1 "Chakra Petch",sans-serif}
+.gauge-info p{margin:6px 0 0;color:var(--muted)}
+.strip{display:flex;height:10px;border-radius:99px;overflow:hidden;background:var(--bg2);margin:14px 0 8px}
+.strip i{display:block;height:100%}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:14px}
+.legend button{background:none;border:0;padding:4px 0;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--ink)}
+.legend b{font:600 16px "Chakra Petch",sans-serif}
+.sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+/* ===== Métricas y tablas ===== */
+.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+@media(min-width:640px){.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.metric{background:var(--surface);padding:12px 14px;cursor:pointer}
+.metric:hover{background:var(--surface2)}
+.metric .n{font:600 26px/1.1 "Chakra Petch",sans-serif}
+.metric .l{font-size:13px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font-size:12px;font-weight:600;color:var(--muted)}
+tr:last-child td{border-bottom:0}
 .tright{text-align:right}
-.chk{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
-.chk .q{flex:1}
-.seg{display:flex;border:1px solid #d1d5db;border-radius:9px;overflow:hidden}
-.seg button{border:0;background:#fff;padding:9px 11px;min-width:46px;font-weight:600;cursor:pointer;color:var(--muted)}
-.seg button+button{border-left:1px solid #d1d5db}
-.seg button.on.c{background:var(--ok);color:#fff}.seg button.on.nc{background:var(--bad);color:#fff}.seg button.on.na{background:#6b7280;color:#fff}
-.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.minibar{height:6px;border-radius:99px;background:var(--bg2);overflow:hidden;min-width:60px}
+.minibar i{display:block;height:100%;background:var(--accent)}
+
+/* ===== Listas ===== */
+.list .it{display:flex;gap:12px;align-items:center;padding:12px 6px 12px 14px;border-bottom:1px solid var(--line);cursor:pointer;position:relative}
+.list .it:last-child{border-bottom:0}
+.list .it:hover{background:var(--surface2)}
+.list .it::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:3px;background:var(--line2)}
+.list .it.s-ok::before{background:var(--ok)} .list .it.s-p::before{background:var(--warn)} .list .it.s-v::before{background:var(--bad)} .list .it.s-g::before{background:var(--na)}
+.list .it b.code{font:600 16px "Chakra Petch",sans-serif}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.d-ok{background:var(--ok)}.d-p{background:var(--warn)}.d-v{background:var(--bad)}.d-g{background:var(--na)}
+
+/* ===== Etiquetas de estado ===== */
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap;border:1px solid transparent}
+.b-ok{background:var(--ok-soft);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 30%,transparent)}
+.b-p{background:var(--warn-soft);color:var(--warn);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.b-v{background:var(--bad-soft);color:var(--bad);border-color:color-mix(in srgb,var(--bad) 30%,transparent)}
+.b-i{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 30%,transparent)}
+.b-g{background:var(--na-soft);color:var(--na)}
+
+/* ===== Botones y campos ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;border-radius:11px;padding:11px 16px;background:var(--accent);color:var(--accent-ink);font-weight:600;cursor:pointer;text-decoration:none;min-height:46px;box-shadow:0 6px 18px -10px var(--glow)}
+.btn:hover{filter:brightness(1.07)}
+.btn svg{width:18px;height:18px}
+.btn.sec{background:var(--surface);color:var(--ink);border-color:var(--line2);box-shadow:none}
+.btn.sec:hover{background:var(--surface2)}
+.btn.ghost{background:transparent;color:var(--accent);padding:8px 10px;min-height:auto;box-shadow:none}
+.btn.dark{background:var(--ink);color:var(--bg)}
+.btn.danger{background:transparent;color:var(--bad);border-color:color-mix(in srgb,var(--bad) 40%,transparent);box-shadow:none}
+.btn.sm{padding:7px 12px;min-height:36px;font-size:14px}
+.btn.block{width:100%}
+.btn:disabled{opacity:.5;cursor:default}
+label{display:block;font-size:14px;color:var(--muted);margin:12px 0 5px;font-weight:500}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line2);border-radius:10px;background:var(--surface2);min-height:46px}
+textarea{min-height:76px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+input[type=checkbox]{width:auto;min-height:auto;accent-color:var(--accent)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+@media(max-width:440px){.grid2{grid-template-columns:1fr}}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;margin:10px 0}
+.chip{border:1px solid var(--line2);background:var(--surface);border-radius:99px;padding:7px 14px;font-size:14px;white-space:nowrap;cursor:pointer;color:var(--ink)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+/* ===== Checklist de inspección ===== */
+.chk{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.chk:last-of-type{border-bottom:0}
+.chk .n{font:600 13px "Chakra Petch",sans-serif;color:var(--faint);width:22px;flex:none}
+.chk .q{flex:1;font-size:15px}
+.seg{display:flex;border:1px solid var(--line2);border-radius:10px;overflow:hidden;flex:none}
+.seg button{border:0;background:var(--surface2);padding:9px 0;width:46px;font-weight:700;cursor:pointer;color:var(--faint)}
+.seg button+button{border-left:1px solid var(--line2)}
+.seg button.on.c{background:var(--ok);color:#fff}.seg button.on.nc{background:var(--bad);color:#fff}.seg button.on.na{background:var(--na);color:#fff}
+.verdict{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--surface2);border:1px solid var(--line)}
+
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px}
 .kv div:nth-child(odd){color:var(--muted)}
-.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#111827;color:#fff;padding:11px 16px;border-radius:10px;z-index:99;max-width:92vw;box-shadow:0 4px 12px rgba(0,0,0,.3)}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center}
-.modal .box{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px}
-@media(min-width:640px){.modal{align-items:center}.modal .box{border-radius:16px}}
-.photo{width:100%;max-height:260px;object-fit:contain;border-radius:10px;background:#f9fafb}
-.empty{text-align:center;color:var(--muted);padding:30px 10px}
-.login{max-width:380px;margin:8vh auto;padding:0 16px}
-.login .logo{width:64px;height:64px;border-radius:16px;background:var(--red);color:#fff;font-size:34px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
-.fab{position:fixed;right:16px;bottom:78px;z-index:15;border-radius:99px;box-shadow:0 4px 14px rgba(185,28,28,.4)}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;z-index:99;max-width:92vw;box-shadow:0 10px 30px -10px rgba(0,0,0,.5);font-weight:500}
+.modal{position:fixed;inset:0;background:rgba(4,12,20,.62);z-index:50;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+.modal .box{background:var(--surface);border:1px solid var(--line);width:100%;max-width:620px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px}
+.modal h3{font:600 18px "Chakra Petch",sans-serif;margin:0 0 10px}
+@media(min-width:640px){.modal{align-items:center}.modal .box{border-radius:18px}}
+.photo{width:100%;max-height:280px;object-fit:contain;border-radius:10px;background:var(--surface2)}
+.empty{text-align:center;color:var(--muted);padding:34px 12px}
+.fab{position:fixed;right:16px;bottom:84px;z-index:15;border-radius:99px;padding:12px 20px}
 .scan video{width:100%;border-radius:12px;background:#000}
-.warnbox{background:var(--warnbg);color:#78350f;padding:10px 12px;border-radius:10px;font-size:13px;margin-bottom:12px}
-.errbox{background:var(--badbg);color:#7f1d1d;padding:10px 12px;border-radius:10px;font-size:13px;margin-bottom:12px}
-.bar{height:8px;background:var(--graybg);border-radius:99px;overflow:hidden}
+.warnbox,.errbox,.okbox{padding:11px 13px;border-radius:10px;font-size:14px;margin-bottom:14px;border:1px solid}
+.warnbox{background:var(--warn-soft);color:var(--warn);border-color:color-mix(in srgb,var(--warn) 35%,transparent)}
+.errbox{background:var(--bad-soft);color:var(--bad);border-color:color-mix(in srgb,var(--bad) 35%,transparent)}
+.okbox{background:var(--ok-soft);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 35%,transparent)}
+.bar{height:8px;background:var(--bg2);border-radius:99px;overflow:hidden}
 .bar i{display:block;height:100%;background:var(--ok)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 14px}
 .hide{display:none!important}
+
+/* ===== Acceso ===== */
+.login{max-width:400px;margin:0 auto;padding:7vh 18px 30px}
+.login .brand{background:var(--plate);border-radius:14px;padding:14px 18px;display:flex;justify-content:center;margin-bottom:22px;border:1px solid var(--line)}
+.login .brand img{height:56px}
+.login h2{font:700 28px/1.1 "Chakra Petch",sans-serif;margin:0}
+.login .lead{color:var(--muted);margin:6px 0 18px}
+.login .card{padding:18px}
+.ext-mark{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--bad);color:#fff;margin-right:8px;vertical-align:middle}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.needle{transition:transform .9s cubic-bezier(.2,.8,.2,1)}
 </style>
 </head>
 <body>
@@ -102,15 +216,61 @@ th{font-size:11px;color:var(--muted);text-transform:uppercase}
    CONFIGURACIÓN — pegue aquí la URL de su aplicación web de Apps Script
    ====================================================================== */
 const API_URL = 'https://script.google.com/macros/s/AKfycbyJPOA1PYAGsdeN_OnugP_T6C1KESrnu-7lACU8Mtrv5_nTEOEzVAxuplcb-MaTVFmU/exec';   // termina en /exec
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.1.0';
 
 const CHECK_LABELS = {
-  accesible:'Accesible (sin obstrucciones)', visible:'Visible', senalizado:'Señalizado',
-  manometro:'Manómetro en zona verde', precinto:'Precinto de seguridad', pasador:'Pasador de seguridad',
-  etiqueta:'Etiqueta legible', boquilla:'Boquilla en buen estado', manguera:'Manguera en buen estado',
-  sin_corrosion:'Sin corrosión', sin_golpes:'Sin golpes ni abolladuras', soporte:'Soporte / gabinete OK',
-  peso:'Peso correcto'
+  ubicado: 'Ubicado', acceso: 'Acceso obstruido', numerado: 'Zona y/o extintor no numerados',
+  picto_clase: 'Pictograma de clase de fuego', picto_uso: 'Pictograma de forma de uso', etiqueta_recarga: 'Etiqueta de recarga',
+  colgador: 'Colgador: ausente / inadecuado', pasador_precinto: 'Sin pasador y/o precinto de seguridad',
+  manometro: 'Manómetro: con presión inadecuada / dañado', manija: 'Manija de acarreo / palanca de activación / pistola dañada o ausente',
+  manguera: 'Manguera: dañada / ausente', tobera: 'Tobera, pitón o pistola: dañada / ausente',
+  abrazadera: 'Abrazadera o sujetador de manguera: inadecuado / dañado / ausente', cilindro: 'Cilindro / botella / cartucho impulsor en mal estado',
+  pintura: 'Pintura deteriorada en cilindro / botella / cartucho impulsor', ph: 'Prueba hidrostática'
 };
+/* Ítems del checklist anterior (inspecciones antiguas) */
+const OLD_LABELS = {
+  accesible: 'Accesible (sin obstrucciones)', visible: 'Visible', senalizado: 'Señalizado', precinto: 'Precinto de seguridad',
+  pasador: 'Pasador de seguridad', etiqueta: 'Etiqueta legible', boquilla: 'Boquilla en buen estado', sin_corrosion: 'Sin corrosión',
+  sin_golpes: 'Sin golpes ni abolladuras', soporte: 'Soporte / gabinete OK', peso: 'Peso correcto'
+};
+const chkLabel = k => CHECK_LABELS[k] || OLD_LABELS[k] || k;
+
+/* Íconos de línea (24×24) */
+const IC = {
+  home: '<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/>',
+  ext: '<path d="M9 7h6v13a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/><path d="M10 7V4.5h4V7"/><path d="M14 4.5h3.5l1.5 2"/><path d="M9 11h6"/>',
+  check: '<rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="m8 12 2.5 2.5L16 9"/>',
+  swap: '<path d="M4 8h13l-3-3"/><path d="M20 16H7l3 3"/>',
+  tool: '<path d="M14.5 5.5a4 4 0 0 0 4.9 4.9L20 11l-9 9-3-3 9-9 .6-.6a4 4 0 0 1-3.1-1.9z" transform="translate(-2 0)"/>',
+  more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  back: '<path d="M15 5l-7 7 7 7"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+  moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  auto: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17A8.5 8.5 0 0 0 12 3.5z" fill="currentColor"/>',
+  qr: '<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"/>',
+  xls: '<path d="M14 3.5H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5z"/><path d="M14 3.5v5h5"/><path d="m9 12 4 5M13 12l-4 5"/>',
+  up: '<path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v3a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-3"/>',
+  down: '<path d="M12 4v12"/><path d="m7 11 5 5 5-5"/><path d="M4 16v3a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-3"/>',
+  tag: '<path d="M3.5 12.5V4.5a1 1 0 0 1 1-1h8l8 8-9 9z"/><circle cx="8.5" cy="8.5" r="1.5"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  pin: '<path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+  sync: '<path d="M20 11a8 8 0 0 0-14-4.5L4 9"/><path d="M4 4v5h5"/><path d="M4 13a8 8 0 0 0 14 4.5L20 15"/><path d="M20 20v-5h-5"/>',
+  print: '<path d="M7 9V3.5h10V9"/><rect x="4" y="9" width="16" height="7" rx="1.5"/><path d="M7 14h10v6.5H7z"/>'
+};
+const ico = (k, cls) => `<svg viewBox="0 0 24 24" class="${cls || ''}" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k] || ''}</svg>`;
+const logoImg = h => window.LOGO_PAS ? `<img src="${window.LOGO_PAS}" alt="Pan American Silver" style="height:${h || 26}px">` : '';
+
+/* Tema claro / oscuro / automático (por dispositivo) */
+function getTheme() { try { return localStorage.getItem('emf-theme') || 'auto'; } catch (e) { return 'auto'; } }
+function setTheme(t) {
+  try { localStorage.setItem('emf-theme', t); } catch (e) {}
+  if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+  const m = document.querySelector('meta[name=theme-color]'); if (m) m.setAttribute('content', '#0B1724');
+  const b = document.getElementById('theme-btn'); if (b) { b.innerHTML = ico(t === 'light' ? 'sun' : t === 'dark' ? 'moon' : 'auto'); b.title = themeName[t]; }
+}
+const themeName = { auto: 'Tema: automático (según el celular)', light: 'Tema: claro', dark: 'Tema: oscuro' };
+function cycleTheme() { const n = { auto: 'light', light: 'dark', dark: 'auto' }[getTheme()] || 'auto'; setTheme(n); toast(themeName[n]); }
 const CLASES = ['ABC','BC','AB','A','B','C','D','K'];
 
 /* ============================ Almacenamiento local (IndexedDB) ============================ */
@@ -322,19 +482,22 @@ function route() {
 function shell(title, body, opts) {
   opts = opts || {};
   const tab = opts.tab || '';
+  const t = getTheme();
+  const nv = (href, key, icon, label) => `<a href="${href}" class="${tab === key ? 'on' : ''}">${ico(icon)}<span>${label}</span></a>`;
   $('#app').innerHTML = `
   <header>
-    ${opts.back ? `<button class="back" onclick="history.back()" aria-label="Volver">‹</button>` : ''}
+    ${opts.back ? `<button class="back" onclick="history.back()" aria-label="Volver">${ico('back')}</button>` : (window.LOGO_PAS ? `<span class="plate">${logoImg(26)}</span>` : '')}
     <h1>${esc(title)}</h1>
+    <button class="iconbtn" id="theme-btn" onclick="cycleTheme()" title="${themeName[t]}" aria-label="Cambiar tema">${ico(t === 'light' ? 'sun' : t === 'dark' ? 'moon' : 'auto')}</button>
     <button class="net" id="net" onclick="trySync(true)"></button>
   </header>
   <main>${body}</main>
   <nav class="tabs">
-    <a href="#/inicio" class="${tab === 'inicio' ? 'on' : ''}"><b>◉</b>Inicio</a>
-    <a href="#/extintores" class="${tab === 'ext' ? 'on' : ''}"><b>🧯</b>Extintores</a>
-    <a href="#/inspecciones" class="${tab === 'ins' ? 'on' : ''}"><b>☑</b>Inspecciones</a>
-    ${isAdmin() ? `<a href="#/entregas" class="${tab === 'ent' ? 'on' : ''}"><b>⇄</b>Entregas</a>` : `<a href="#/servicios" class="${tab === 'ser' ? 'on' : ''}"><b>🔧</b>Servicios</a>`}
-    <a href="#/ajustes" class="${tab === 'aj' ? 'on' : ''}"><b>⚙</b>Más</a>
+    ${nv('#/inicio', 'inicio', 'home', 'Inicio')}
+    ${nv('#/extintores', 'ext', 'ext', 'Extintores')}
+    ${nv('#/inspecciones', 'ins', 'check', 'Inspecciones')}
+    ${isAdmin() ? nv('#/entregas', 'ent', 'swap', 'Entregas') : nv('#/servicios', 'ser', 'tool', 'Servicios')}
+    ${nv('#/ajustes', 'aj', 'more', 'Más')}
   </nav>`;
   renderNet();
 }
@@ -343,26 +506,30 @@ function renderNet() {
   const n = $('#net'); if (!n) return;
   const q = S.queue.length, err = S.queue.filter(o => o.error).length;
   n.className = 'net' + (S.online ? '' : ' off');
-  n.textContent = S.syncing ? '⟳ Sincronizando…' : (S.online ? '● En línea' : '○ Sin señal') + (q ? ' · ' + q + ' pend.' : '') + (err ? ' ⚠' : '');
+  const txt = S.syncing ? 'Sincronizando…' : (S.online ? 'En línea' : 'Sin señal') + (q ? ' · ' + q + ' pend.' : '') + (err ? ' · error' : '');
+  n.innerHTML = `<i></i><span class="t">${txt}</span>`;
+  n.title = txt;
 }
 
 /* ============================ Vistas: acceso ============================ */
 function viewLoading() { $('#app').innerHTML = '<div class="empty" style="margin-top:30vh">Cargando…</div>'; }
 
 function viewLogin() {
+  const t = getTheme();
   $('#app').innerHTML = `
   <div class="login">
-    <div class="logo">🧯</div>
-    <h2 style="text-align:center;margin:0 0 4px">EmerMine Fire</h2>
-    <p class="muted" style="text-align:center;margin:0 0 20px">Gestión de extintores</p>
+    <div class="row" style="justify-content:flex-end;margin-bottom:10px"><button class="iconbtn" style="color:var(--ink);border-color:var(--line2)" id="theme-btn" onclick="cycleTheme()" aria-label="Cambiar tema">${ico(t === 'light' ? 'sun' : t === 'dark' ? 'moon' : 'auto')}</button></div>
+    ${window.LOGO_PAS ? `<div class="brand">${logoImg(56)}</div>` : ''}
+    <h2><span class="ext-mark">${ico('ext')}</span>EmerMine Fire</h2>
+    <p class="lead">Control de extintores · U.M. Huarón</p>
     <div class="card">
       <form onsubmit="doLogin(event)">
-        <label>Correo electrónico</label>
+        <label style="margin-top:0">Correo electrónico</label>
         <input id="lg-email" type="email" autocomplete="username" required inputmode="email">
         <label>Contraseña</label>
         <input id="lg-pass" type="password" autocomplete="current-password" required>
         <div id="lg-err" class="errbox hide" style="margin-top:12px"></div>
-        <button class="btn block" style="margin-top:14px" id="lg-btn">Iniciar sesión</button>
+        <button class="btn block" style="margin-top:16px" id="lg-btn">Iniciar sesión</button>
       </form>
       <p class="sub" style="margin:12px 0 0">El primer ingreso requiere señal. Si olvidó su contraseña, pida al administrador que la restablezca.</p>
     </div>
@@ -422,6 +589,32 @@ async function doChangePassword(ev) {
 }
 
 /* ============================ Vista: Dashboard ============================ */
+/* Manómetro semicircular: % de extintores inspeccionados en el mes */
+function gaugeSvg(pct) {
+  const cx = 110, cy = 110, r = 86;
+  const pt = (p, rr) => { const a = Math.PI * (1 - p / 100); return [cx + rr * Math.cos(a), cy - rr * Math.sin(a)]; };
+  const arc = (a, b, rr) => { const p1 = pt(a, rr), p2 = pt(b, rr); return `M${p1[0].toFixed(1)} ${p1[1].toFixed(1)} A${rr} ${rr} 0 0 1 ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`; };
+  let ticks = '';
+  for (let i = 0; i <= 100; i += 5) { const a = pt(i, r - 14), b = pt(i, r - (i % 25 ? 19 : 24)); ticks += `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="var(--line2)" stroke-width="${i % 25 ? 1 : 2}"/>`; }
+  const lbl = [0, 50, 100].map(v => { const p = pt(v, r - 36); return `<text class="lbl" x="${p[0].toFixed(1)}" y="${(p[1] + 4).toFixed(1)}" text-anchor="middle">${v}</text>`; }).join('');
+  const rot = -90 + 1.8 * Math.max(0, Math.min(100, pct));
+  return `<svg class="gauge" viewBox="0 0 220 128" role="img" aria-label="${pct}% inspeccionado este mes">
+    <path d="${arc(0, 100, r)}" stroke="var(--bg2)" stroke-width="16" fill="none"/>
+    <path d="${arc(0, 59.5, r)}" stroke="var(--bad)" stroke-width="16" fill="none" opacity=".85"/>
+    <path d="${arc(60.5, 89.5, r)}" stroke="var(--warn)" stroke-width="16" fill="none" opacity=".85"/>
+    <path d="${arc(90.5, 100, r)}" stroke="var(--ok)" stroke-width="16" fill="none" opacity=".9"/>
+    ${ticks}${lbl}
+    <g class="needle" style="transform-origin:${cx}px ${cy}px;transform:rotate(-90deg)" data-rot="${rot}">
+      <path d="M${cx - 4} ${cy} L${cx} ${cy - r + 8} L${cx + 4} ${cy} Z" fill="var(--ink)"/>
+    </g>
+    <circle cx="${cx}" cy="${cy}" r="9" fill="var(--surface)" stroke="var(--ink)" stroke-width="3"/>
+  </svg>`;
+}
+function animateGauge() {
+  const n = document.querySelector('.needle'); if (!n) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => { n.style.transform = 'rotate(' + n.dataset.rot + 'deg)'; }));
+}
+
 function viewDashboard() {
   const ext = activos(), t = today(), mes = t.slice(0, 7);
   const st = ext.map(e => ({ e: e, s: status(e) }));
@@ -432,49 +625,63 @@ function viewDashboard() {
   const fuera = ext.filter(e => e.estado === 'Fuera de Servicio' || e.estado === 'En Mantenimiento').length;
   const noApt = (S.data.inspecciones || []).filter(i => i.resultado === 'No Apto' && daysBetween(i.fecha, t) <= 30).length;
   const sinEmp = !seesAll() && !me().empresa_id;
+  const nv = st.filter(x => x.s.worst === 'v').length, np = st.filter(x => x.s.worst === 'p').length, nok = st.filter(x => x.s.worst === 'ok').length;
+  const w = n => ext.length ? (100 * n / ext.length).toFixed(2) + '%' : '0';
+  const faltan = ext.length - inspeccionados;
+  const diasMes = new Date(+t.slice(0, 4), +t.slice(5, 7), 0).getDate(), quedan = diasMes - +t.slice(8, 10);
 
-  // Por empresa
   const byEmp = {};
   st.forEach(x => { const k = x.e.empresa_id || ''; byEmp[k] = byEmp[k] || { n: 0, ins: 0, v: 0, p: 0 }; byEmp[k].n++; if (insMes.has(x.e.id)) byEmp[k].ins++; if (x.s.worst === 'v') byEmp[k].v++; else if (x.s.worst === 'p') byEmp[k].p++; });
   const empRows = Object.keys(byEmp).map(k => ({ k: k, name: empName(k), ...byEmp[k] })).sort((a, b) => b.v - a.v || a.name.localeCompare(b.name));
-
   const alertas = st.filter(x => x.s.worst !== 'ok').sort((a, b) => (a.s.worst === 'v' ? 0 : 1) - (b.s.worst === 'v' ? 0 : 1)).slice(0, 25);
+  const mesTxt = new Date().toLocaleString('es-PE', { month: 'long', year: 'numeric' });
 
   shell(cfg('NOMBRE_SISTEMA') || 'EmerMine Fire', `
     ${sinEmp ? '<div class="errbox">Su usuario no tiene empresa / área asignada. Pida al administrador que se la asigne para ver sus extintores.</div>' : ''}
     ${S.queue.filter(o => o.error).length ? '<div class="errbox">Hay registros que no se pudieron sincronizar. <a href="#/pendientes">Revisar</a></div>' : ''}
-    <p class="sub" style="margin:0 0 10px">${esc(me().nombre)} · ${esc(me().rol)}${me().empresa_id ? ' · ' + esc(empName(me().empresa_id)) : ''} · Actualizado ${S.lastSync ? new Date(S.lastSync).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' }) : '—'}</p>
+    <p class="sub" style="margin:0 0 12px">${esc(me().nombre)} · ${esc(me().rol)}${me().empresa_id ? ' · ' + esc(empName(me().empresa_id)) : ''}<br>Actualizado ${S.lastSync ? new Date(S.lastSync).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' }) : '—'}</p>
+    <div class="card gauge-card">
+      <h2 style="margin:0">Inspección mensual <span class="hint">${esc(mesTxt)}</span></h2>
+      <div class="gauge-wrap">
+        ${gaugeSvg(pct)}
+        <div class="gauge-info">
+          <div class="big num">${pct}<span style="font-size:24px">%</span></div>
+          <p><b class="num" style="color:var(--ink)">${inspeccionados}</b> de <b class="num" style="color:var(--ink)">${ext.length}</b> extintores inspeccionados.</p>
+          <p>${faltan > 0 ? `Faltan <b class="num" style="color:var(--ink)">${faltan}</b> · quedan ${quedan} día(s) del mes.` : 'Todos los extintores están inspeccionados este mes.'}</p>
+        </div>
+      </div>
+    </div>
     <div class="card">
-      <div class="row"><b class="grow">Inspección mensual — ${new Date().toLocaleString('es-PE', { month: 'long', year: 'numeric' })}</b><b>${pct}%</b></div>
-      <div class="bar" style="margin:8px 0 4px"><i style="width:${pct}%"></i></div>
-      <span class="sub">${inspeccionados} de ${ext.length} extintores inspeccionados este mes</span>
+      <h2>Estado de los extintores activos</h2>
+      <div class="strip" role="img" aria-label="${nv} vencidos, ${np} por vencer, ${nok} vigentes"><i style="width:${w(nv)};background:var(--bad)"></i><i style="width:${w(np)};background:var(--warn)"></i><i style="width:${w(nok)};background:var(--ok)"></i></div>
+      <div class="legend">
+        <button onclick="filt('','','v','')"><span class="sw" style="background:var(--bad)"></span>Con algo vencido <b>${nv}</b></button>
+        <button onclick="filt('','','p','')"><span class="sw" style="background:var(--warn)"></span>Por vencer <b>${np}</b></button>
+        <button onclick="filt('','','ok','')"><span class="sw" style="background:var(--ok)"></span>Vigentes <b>${nok}</b></button>
+      </div>
     </div>
-    <div class="kpis">
-      <div class="kpi info" onclick="filt('','','','')"><div class="n">${ext.length}</div><div class="l">Extintores activos</div></div>
-      <div class="kpi bad" onclick="filt('','','v','')"><div class="n">${st.filter(x => x.s.worst === 'v').length}</div><div class="l">Con algo vencido</div></div>
-      <div class="kpi warn" onclick="filt('','','p','')"><div class="n">${st.filter(x => x.s.worst === 'p').length}</div><div class="l">Por vencer</div></div>
-      <div class="kpi ok" onclick="filt('','','ok','')"><div class="n">${st.filter(x => x.s.worst === 'ok').length}</div><div class="l">Vigentes</div></div>
+    <div class="metrics" style="margin-bottom:14px">
+      ${['Inspección', 'Mantenimiento', 'Recarga', 'Prueba hidrostática'].map(k => { const v = cnt(k, 'v'), p = cnt(k, 'p'); return `<div class="metric" onclick="filt('','','v','')"><div class="n num" style="color:${v ? 'var(--bad)' : 'var(--ink)'}">${v}</div><div class="l">${k}: vencidos${p ? ` · <span style="color:var(--warn)">${p} por vencer</span>` : ''}</div></div>`; }).join('')}
     </div>
-    <div class="card"><h2>Vencimientos por tipo</h2>
-      <table><tr><th>Ítem</th><th class="tright">Vencidos</th><th class="tright">Por vencer</th></tr>
-      ${['Inspección', 'Mantenimiento', 'Recarga', 'Prueba hidrostática'].map(k => `<tr><td>${k}</td><td class="tright"><span class="badge b-v">${cnt(k, 'v')}</span></td><td class="tright"><span class="badge b-p">${cnt(k, 'p')}</span></td></tr>`).join('')}
-      <tr><td>Fuera de servicio / en mantenimiento</td><td class="tright"><span class="badge b-g">${fuera}</span></td><td></td></tr>
-      <tr><td>Inspecciones No Apto (30 días)</td><td class="tright"><span class="badge b-v">${noApt}</span></td><td></td></tr>
+    <div class="card">
+      <table>
+        <tr><td>Fuera de servicio / en mantenimiento</td><td class="tright"><span class="badge b-g num">${fuera}</span></td></tr>
+        <tr><td>Inspecciones No Apto (últimos 30 días)</td><td class="tright"><span class="badge ${noApt ? 'b-v' : 'b-ok'} num">${noApt}</span></td></tr>
       </table>
     </div>
-    ${seesAll() ? `<div class="card"><h2>Cumplimiento por empresa / área (mes actual)</h2>
-      <table><tr><th>Empresa / Área</th><th class="tright">Ext.</th><th class="tright">Insp.</th><th class="tright">%</th><th class="tright">Venc.</th></tr>
-      ${empRows.map(r => `<tr onclick="filt('','${esc(r.k)}','','')" style="cursor:pointer"><td>${esc(r.name)}</td><td class="tright">${r.n}</td><td class="tright">${r.ins}</td><td class="tright">${Math.round(100 * r.ins / r.n)}%</td><td class="tright">${r.v ? `<span class="badge b-v">${r.v}</span>` : '0'}</td></tr>`).join('')}
-      </table></div>` : ''}
-    <div class="card"><h2>Alertas</h2>
-      ${alertas.length ? `<div class="list">${alertas.map(x => `
-        <div class="it" onclick="go('#/ext/${x.e.id}')">
-          <span class="dot d-${x.s.worst}"></span>
-          <div class="grow"><b>${esc(x.e.codigo)}</b> <span class="sub">${esc(empName(x.e.empresa_id))}</span>
+    ${seesAll() ? `<div class="card"><h2>Cumplimiento por empresa / área <span class="hint">mes actual</span></h2>
+      <div style="overflow-x:auto"><table><tr><th>Empresa / Área</th><th class="tright">Ext.</th><th style="min-width:110px">Inspección</th><th class="tright">Venc.</th></tr>
+      ${empRows.map(r => { const pc = Math.round(100 * r.ins / r.n); return `<tr onclick="filt('','${esc(r.k)}','','')" style="cursor:pointer"><td>${esc(r.name)}</td><td class="tright num">${r.n}</td><td><div class="row" style="gap:6px"><div class="minibar grow"><i style="width:${pc}%;background:${pc >= 90 ? 'var(--ok)' : pc >= 60 ? 'var(--warn)' : 'var(--bad)'}"></i></div><span class="num" style="font-size:13px;min-width:34px;text-align:right">${pc}%</span></div></td><td class="tright">${r.v ? `<span class="badge b-v num">${r.v}</span>` : '<span class="num muted">0</span>'}</td></tr>`; }).join('')}
+      </table></div></div>` : ''}
+    <div class="card" style="padding-bottom:6px"><h2>Alertas <span class="hint">${alertas.length ? 'los más urgentes primero' : ''}</span></h2>
+      ${alertas.length ? `<div class="list" style="margin:0 -16px">${alertas.map(x => `
+        <div class="it s-${x.s.worst}" onclick="go('#/ext/${x.e.id}')" style="padding-left:18px">
+          <div class="grow"><b class="code">${esc(x.e.codigo)}</b> <span class="sub">${esc(empName(x.e.empresa_id))}</span>
           <div class="sub">${x.s.items.filter(i => i.s === 'v' || i.s === 'p').map(i => esc(i.k + ': ' + i.txt)).join(' · ') || esc(x.e.estado)}</div></div>
-        </div>`).join('')}</div>` : '<div class="empty">Sin alertas 👍</div>'}
+        </div>`).join('')}</div>` : '<div class="empty">Sin alertas. Todo vigente.</div>'}
     </div>
   `, { tab: 'inicio' });
+  animateGauge();
 }
 
 function filt(q, emp, sem, est) { S.filters = { q: q, emp: emp, sem: sem, est: est }; go('#/extintores'); }
@@ -484,8 +691,8 @@ function viewList() {
   const f = S.filters;
   shell('Extintores', `
     <div class="row">
-      <input id="f-q" class="grow" placeholder="Buscar código, serie, ubicación…" value="${esc(f.q)}" oninput="S.filters.q=this.value;renderList()">
-      <button class="btn sec" onclick="openScanner()" title="Escanear QR">⌗ QR</button>
+      <input id="f-q" class="grow" placeholder="Buscar código, serie, marca, ubicación…" value="${esc(f.q)}" oninput="S.filters.q=this.value;renderList()">
+      <button class="btn sec" onclick="openScanner()" title="Escanear QR" aria-label="Escanear QR">${ico('qr')}</button>
     </div>
     <div class="row wrap" style="margin-top:8px">
       ${seesAll() ? `<select class="grow" onchange="S.filters.emp=this.value;renderList()" style="min-width:150px"><option value="">Todas las empresas / áreas</option>
@@ -496,9 +703,13 @@ function viewList() {
     <div class="chips">
       ${[['', 'Todos'], ['v', 'Vencidos'], ['p', 'Por vencer'], ['ok', 'Vigentes']].map(c => `<span class="chip ${f.sem === c[0] ? 'on' : ''}" onclick="S.filters.sem='${c[0]}';viewList()">${c[1]}</span>`).join('')}
     </div>
-    <div class="card" style="padding:4px 10px"><div id="lst" class="list"></div></div>
-    <div class="row wrap" style="gap:8px"><button class="btn sec sm" onclick="exportCsv()">⬇ Exportar CSV</button><button class="btn sec sm" onclick="printQrFiltered()">🏷 Etiquetas QR</button></div>
-    <button class="btn fab" onclick="go('#/ext-form')">＋ Nuevo</button>
+    <div class="toolbar">
+      <button class="btn sec sm" onclick="xlsListado()">${ico('down')} Listado general (Excel)</button>
+      <button class="btn sec sm" onclick="xlsImportar()">${ico('up')} Carga masiva</button>
+      <button class="btn sec sm" onclick="printQrFiltered()">${ico('tag')} Etiquetas QR</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden"><div id="lst" class="list"></div></div>
+    <button class="btn fab" onclick="go('#/ext-form')">${ico('plus')} Nuevo</button>
   `, { tab: 'ext' });
   renderList();
 }
@@ -509,7 +720,7 @@ function filteredList() {
     if (f.est === '' && e.estado === 'Dado de Baja') return false;
     if (f.est && f.est !== '*' && e.estado !== f.est) return false;
     if (f.emp && e.empresa_id !== f.emp) return false;
-    if (q && ![e.codigo, e.serie, e.ubicacion, e.nivel, empName(e.empresa_id)].join(' ').toLowerCase().includes(q)) return false;
+    if (q && ![e.codigo, e.serie, e.marca, e.ubicacion, e.nivel, empName(e.empresa_id)].join(' ').toLowerCase().includes(q)) return false;
     if (f.sem && status(e).worst !== f.sem) return false;
     return true;
   }).sort((a, b) => String(a.codigo).localeCompare(String(b.codigo), 'es', { numeric: true }));
@@ -519,25 +730,13 @@ function renderList() {
   const l = filteredList(), el = $('#lst'); if (!el) return;
   const shown = l.slice(0, 300);
   el.innerHTML = shown.length ? shown.map(e => { const s = status(e); return `
-    <div class="it" onclick="go('#/ext/${e.id}')">
-      <span class="dot d-${s.worst}"></span>
-      <div class="grow"><b>${esc(e.codigo)}</b> <span class="sub">· ${esc(e.agente)} ${esc(e.capacidad)}</span>${e._pending ? ' <span class="badge b-i">pendiente</span>' : ''}
+    <div class="it s-${s.worst}" onclick="go('#/ext/${e.id}')">
+      <div class="grow"><b class="code">${esc(e.codigo)}</b> <span class="sub">· ${esc(e.agente)} ${esc(e.capacidad)}${e.marca ? ' · ' + esc(e.marca) : ''}</span>${e._pending ? ' <span class="badge b-i">pendiente</span>' : ''}
         <div class="sub">${esc(empName(e.empresa_id))} · ${esc(e.ubicacion || 'sin ubicación')}</div></div>
       <span class="badge b-${s.worst === 'ok' ? 'ok' : s.worst === 'g' ? 'g' : s.worst}">${e.estado !== 'Operativo' ? esc(e.estado) : semLabel[s.worst]}</span>
     </div>`; }).join('') + (l.length > 300 ? `<div class="empty">Mostrando 300 de ${l.length}. Use la búsqueda.</div>` : '')
-    : '<div class="empty">No hay extintores con esos filtros.</div>';
+    : `<div class="empty">No hay extintores con esos filtros.<br><br><button class="btn sec sm" onclick="xlsImportar()">${ico('up')} Cargar desde Excel</button></div>`;
   const t = document.querySelector('header h1'); if (t) t.textContent = 'Extintores (' + l.length + ')';
-}
-
-function exportCsv() {
-  const l = filteredList();
-  const cols = ['codigo', 'serie', 'agente', 'clase', 'capacidad', 'empresa', 'ubicacion', 'nivel', 'proveedor', 'fecha_fabricacion', 'estado', 'ult_inspeccion', 'ult_mantenimiento', 'prox_mantenimiento', 'ult_recarga', 'prox_recarga', 'ult_ph', 'prox_ph', 'semaforo'];
-  const rows = [cols.join(';')].concat(l.map(e => cols.map(c => {
-    const v = c === 'empresa' ? empName(e.empresa_id) : c === 'semaforo' ? semLabel[status(e).worst] : (e[c] || '');
-    return '"' + String(v).replace(/"/g, '""') + '"';
-  }).join(';')));
-  const blob = new Blob(['\ufeff' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'extintores_' + today() + '.csv'; a.click();
 }
 
 /* ============================ Vista: Ficha del extintor ============================ */
@@ -550,35 +749,37 @@ function viewExt(id) {
   const foto = e._foto || e.foto_url;
   shell(e.codigo, `
     <div class="card">
-      <div class="row"><span class="dot d-${s.worst}"></span><b class="grow">${esc(e.codigo)}</b><span class="badge ${e.estado === 'Operativo' ? 'b-ok' : 'b-v'}">${esc(e.estado)}</span></div>
+      <div class="row"><b class="grow num" style="font-size:24px">${esc(e.codigo)}</b><span class="badge b-${s.worst === 'ok' ? 'ok' : s.worst === 'g' ? 'g' : s.worst}">${e.estado !== 'Operativo' ? esc(e.estado) : semLabel[s.worst]}</span></div>
       ${foto ? `<img class="photo" style="margin-top:10px" src="${esc(foto)}" alt="Foto" loading="lazy" onerror="this.remove()">` : ''}
-      <div class="kv" style="margin-top:10px">
+      <div class="kv" style="margin-top:12px">
         <div>Empresa / Área</div><div>${esc(empName(e.empresa_id))}</div>
         <div>Ubicación</div><div>${esc(e.ubicacion || '—')}${e.nivel ? ' · ' + esc(e.nivel) : ''}</div>
-        <div>Agente / Clase</div><div>${esc(e.agente)} · ${esc(e.clase)} · ${esc(e.capacidad)}</div>
-        <div>N° serie</div><div>${esc(e.serie || '—')}</div>
+        <div>Tipo</div><div>${esc(e.agente)} · clase ${esc(e.clase)} · ${esc(e.capacidad)}</div>
+        <div>Marca</div><div>${esc(e.marca || '—')}</div>
+        <div>N° de serie</div><div>${esc(e.serie || '—')}</div>
         <div>Fabricación</div><div>${fdate(e.fecha_fabricacion)}</div>
-        <div>Proveedor</div><div>${esc(e.proveedor || '—')}</div>
+        <div>Mantenimiento y recarga</div><div>${fdate(e.ult_mantenimiento || e.ult_recarga)}</div>
+        <div>Empresa mantenedora</div><div>${esc(e.proveedor || '—')}</div>
         ${e.observaciones ? `<div>Observaciones</div><div>${esc(e.observaciones)}</div>` : ''}
       </div>
     </div>
-    <div class="row" style="gap:8px;margin-bottom:12px">
-      <button class="btn grow" onclick="go('#/inspeccion/${e.id}')">☑ Inspeccionar</button>
-      <button class="btn dark grow" onclick="go('#/servicio/${e.id}')">🔧 Servicio</button>
+    <div class="row" style="gap:8px;margin-bottom:14px">
+      <button class="btn grow" onclick="go('#/inspeccion/${e.id}')">${ico('check')} Inspeccionar</button>
+      <button class="btn sec grow" onclick="go('#/servicio/${e.id}')">${ico('tool')} Servicio</button>
     </div>
-    <div class="card"><h2>Estado</h2>
-      <table>${s.items.map(i => `<tr><td>${esc(i.k)}</td><td>${esc(i.txt)}</td><td class="tright"><span class="badge b-${i.s === 'n' ? 'g' : i.s}">${i.s === 'n' ? '—' : semLabel[i.s]}</span></td></tr>`).join('')}</table>
+    <div class="card"><h2>Vencimientos</h2>
+      <table>${s.items.map(i => `<tr><td>${esc(i.k)}</td><td class="sub">${esc(i.txt)}</td><td class="tright"><span class="badge b-${i.s === 'n' ? 'g' : i.s}">${i.s === 'n' ? '—' : semLabel[i.s]}</span></td></tr>`).join('')}</table>
     </div>
-    <div class="card"><h2>Inspecciones (${ins.length})</h2>
-      ${ins.length ? `<table><tr><th>Fecha</th><th>Inspector</th><th>Resultado</th></tr>${ins.slice(0, 24).map(i => `<tr onclick="showInspeccion('${i.id}')" style="cursor:pointer"><td>${fdate(i.fecha)} ${esc(i.hora || '')}</td><td>${esc(i.inspector)}</td><td><span class="badge ${i.resultado === 'Apto' ? 'b-ok' : 'b-v'}">${esc(i.resultado)}</span>${i._pending ? ' <span class="badge b-i">pend.</span>' : ''}</td></tr>`).join('')}</table>` : '<div class="sub">Sin inspecciones registradas.</div>'}
+    <div class="card"><h2>Inspecciones <span class="hint">${ins.length}</span></h2>
+      ${ins.length ? `<table><tr><th>Fecha</th><th>Inspector</th><th>Resultado</th></tr>${ins.slice(0, 24).map(i => `<tr onclick="showInspeccion('${i.id}')" style="cursor:pointer"><td class="num">${fdate(i.fecha)} ${esc(i.hora || '')}</td><td>${esc(i.inspector)}</td><td><span class="badge ${i.resultado === 'Apto' ? 'b-ok' : 'b-v'}">${esc(i.resultado)}</span>${i._pending ? ' <span class="badge b-i">pend.</span>' : ''}</td></tr>`).join('')}</table>` : '<div class="sub">Sin inspecciones registradas.</div>'}
     </div>
-    <div class="card"><h2>Servicios (${ser.length})</h2>
-      ${ser.length ? `<table><tr><th>Fecha</th><th>Tipo</th><th>Proveedor</th></tr>${ser.map(i => `<tr><td>${fdate(i.fecha)}</td><td>${esc(i.tipo)}${i._pending ? ' <span class="badge b-i">pend.</span>' : ''}</td><td>${esc(i.proveedor)}${i.certificado_url ? ` · <a href="${esc(i.certificado_url)}" target="_blank" rel="noopener">certificado</a>` : ''}</td></tr>`).join('')}</table>` : '<div class="sub">Sin servicios registrados.</div>'}
+    <div class="card"><h2>Servicios <span class="hint">${ser.length}</span></h2>
+      ${ser.length ? `<table><tr><th>Fecha</th><th>Tipo</th><th>Proveedor</th></tr>${ser.map(i => `<tr><td class="num">${fdate(i.fecha)}</td><td>${esc(i.tipo)}${i._pending ? ' <span class="badge b-i">pend.</span>' : ''}</td><td>${esc(i.proveedor)}${i.certificado_url ? ` · <a href="${esc(i.certificado_url)}" target="_blank" rel="noopener">certificado</a>` : ''}</td></tr>`).join('')}</table>` : '<div class="sub">Sin servicios registrados.</div>'}
     </div>
-    <div class="row wrap" style="gap:8px">
-      <button class="btn sec sm" onclick="go('#/ext-form/${e.id}')">✎ Editar</button>
-      <button class="btn sec sm" onclick="go('#/qr/${e.id}')">🏷 Etiqueta QR</button>
-      ${isAdmin() ? `<button class="btn sec sm" style="color:var(--bad)" onclick="delExt('${e.id}')">Eliminar</button>` : ''}
+    <div class="toolbar">
+      <button class="btn sec sm" onclick="go('#/ext-form/${e.id}')">${ico('edit')} Editar</button>
+      <button class="btn sec sm" onclick="go('#/qr/${e.id}')">${ico('tag')} Etiqueta QR</button>
+      ${isAdmin() ? `<button class="btn danger sm" onclick="delExt('${e.id}')">Eliminar</button>` : ''}
     </div>
   `, { back: true, tab: 'ext' });
 }
@@ -586,10 +787,11 @@ function viewExt(id) {
 function showInspeccion(id) {
   const i = (S.data.inspecciones || []).find(x => x.id === id); if (!i) return;
   const foto = i._foto || i.foto_url;
-  modal(`<h3 style="margin-top:0">Inspección ${esc(i.codigo)} — ${fdate(i.fecha)} ${esc(i.hora || '')}</h3>
-    <p><span class="badge ${i.resultado === 'Apto' ? 'b-ok' : 'b-v'}">${esc(i.resultado)}</span> · ${esc(i.inspector)}${i.gps ? ' · <a target="_blank" rel="noopener" href="https://maps.google.com/?q=' + esc(i.gps) + '">GPS</a>' : ''}</p>
-    <table>${Object.keys(CHECK_LABELS).map(k => `<tr><td>${CHECK_LABELS[k]}</td><td class="tright"><span class="badge ${i[k] === 'NC' ? 'b-v' : i[k] === 'NA' ? 'b-g' : 'b-ok'}">${i[k] === 'NC' ? 'No conforme' : i[k] === 'NA' ? 'N.A.' : 'Conforme'}</span></td></tr>`).join('')}</table>
-    ${i.observaciones ? `<p><b>Observaciones:</b> ${esc(i.observaciones)}</p>` : ''}
+  const keys = Object.keys(CHECK_LABELS).some(k => i[k]) ? Object.keys(CHECK_LABELS) : Object.keys(OLD_LABELS).concat(['manometro', 'manguera']).filter(k => i[k]);
+  modal(`<h3>Inspección ${esc(i.codigo)} · ${fdate(i.fecha)} ${esc(i.hora || '')}</h3>
+    <p><span class="badge ${i.resultado === 'Apto' ? 'b-ok' : 'b-v'}">${esc(i.resultado)}</span> ${esc(i.inspector)}${i.gps ? ' · <a target="_blank" rel="noopener" href="https://maps.google.com/?q=' + esc(i.gps) + '">GPS</a>' : ''}</p>
+    <table>${keys.map((k, n) => `<tr><td class="num muted" style="width:28px">${n + 1}</td><td>${esc(chkLabel(k))}</td><td class="tright"><span class="badge ${i[k] === 'NC' ? 'b-v' : i[k] === 'NA' ? 'b-g' : 'b-ok'}">${i[k] === 'NC' ? 'No conforme' : i[k] === 'NA' ? 'N/A' : 'Conforme'}</span></td></tr>`).join('')}</table>
+    ${i.observaciones ? `<p><b>Otros / observaciones:</b> ${esc(i.observaciones)}</p>` : ''}
     ${foto ? `<img class="photo" src="${esc(foto)}" onerror="this.remove()">` : ''}
     <button class="btn sec block" style="margin-top:12px" onclick="closeModal()">Cerrar</button>`);
 }
@@ -609,29 +811,31 @@ function viewExtForm(id) {
   shell(e ? 'Editar ' + e.codigo : 'Nuevo extintor', `
     <form class="card" onsubmit="saveExt(event,'${e ? e.id : ''}')">
       <div class="grid2">
-        <div><label>Código interno *</label><input name="codigo" required value="${v('codigo')}" autocapitalize="characters"></div>
-        <div><label>N° de serie</label><input name="serie" value="${v('serie')}"></div>
+        <div><label style="margin-top:0">Nº de extintor (código) *</label><input name="codigo" required value="${v('codigo')}" autocapitalize="characters"></div>
+        <div><label style="margin-top:0">Número de serie</label><input name="serie" value="${v('serie')}"></div>
         <div><label>Tipo de agente *</label><select name="agente" required>${S.data.catalogos.agentes.map(a => `<option ${(e ? e.agente : 'PQS') === a ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
         <div><label>Clase *</label><select name="clase">${CLASES.map(a => `<option ${(e ? e.clase : 'ABC') === a ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
         <div><label>Capacidad</label><input name="capacidad" placeholder="Ej: 6 kg" value="${v('capacidad')}"></div>
+        <div><label>Marca</label><input name="marca" value="${v('marca')}" placeholder="Ej: Mircom"></div>
         <div><label>Estado</label><select name="estado">${S.data.catalogos.estados.map(a => `<option ${(e ? e.estado : 'Operativo') === a ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
+        <div><label>Fecha de fabricación</label><input name="fecha_fabricacion" type="date" value="${v('fecha_fabricacion')}"></div>
       </div>
-      <label>Empresa / Área *</label>
+      <label>Área o contratista responsable *</label>
       ${seesAll() ? `<select name="empresa_id" required><option value="">Seleccione…</option>${empOpts.map(x => `<option value="${esc(x.id)}" ${e && e.empresa_id === x.id ? 'selected' : ''}>${esc(x.nombre)}</option>`).join('')}</select>`
                   : `<input disabled value="${esc(empName(me().empresa_id))}">`}
       <div class="grid2">
         <div><label>Ubicación exacta</label><input name="ubicacion" value="${v('ubicacion')}" placeholder="Ej: CA 119 NV 100"></div>
         <div><label>Nivel / Zona</label><input name="nivel" value="${v('nivel')}" placeholder="Ej: NV 250 / Superficie"></div>
         <div><label>Empresa mantenedora</label><input name="proveedor" value="${v('proveedor')}"></div>
-        <div><label>Fecha de fabricación</label><input name="fecha_fabricacion" type="date" value="${v('fecha_fabricacion')}"></div>
+        <div><label>Fecha de mantenimiento y recarga</label><input name="ult_mantenimiento" type="date" value="${esc(e ? (e.ult_mantenimiento || e.ult_recarga || '') : '')}"></div>
         <div><label>Próximo mantenimiento</label><input name="prox_mantenimiento" type="date" value="${v('prox_mantenimiento')}"></div>
         <div><label>Próxima recarga</label><input name="prox_recarga" type="date" value="${v('prox_recarga')}"></div>
         <div><label>Próxima prueba hidrostática</label><input name="prox_ph" type="date" value="${v('prox_ph')}"></div>
       </div>
-      <p class="sub">Si deja vacía la prueba hidrostática, se calcula desde la fecha de fabricación según el agente.</p>
+      <p class="sub">Si deja vacías las próximas fechas, se calculan desde la fecha de mantenimiento y recarga (y la prueba hidrostática desde la fabricación, según el agente).</p>
       <label>Observaciones</label><textarea name="observaciones">${v('observaciones')}</textarea>
       <label>Fotografía</label><input type="file" accept="image/*" capture="environment" id="ef-foto">
-      <button class="btn block" style="margin-top:16px">Guardar</button>
+      <button class="btn block" style="margin-top:16px">Guardar extintor</button>
     </form>
   `, { back: true, tab: 'ext' });
 }
@@ -642,15 +846,24 @@ async function saveExt(ev, id) {
   fd.forEach((val, k) => p[k] = String(val).trim());
   p.codigo = p.codigo.replace(/\s+/g, ' ').toUpperCase();
   if (!seesAll()) p.empresa_id = me().empresa_id;
-  if (!p.empresa_id) return toast('Seleccione la empresa / área.');
-  const norm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\s\-_.\/]+/g, '').toUpperCase();
+  if (!p.empresa_id) return toast('Seleccione el área o contratista.');
+  const prev = id ? extById(id) : null;
+  if (p.ult_mantenimiento) {
+    const changed = !prev || p.ult_mantenimiento !== (prev.ult_mantenimiento || prev.ult_recarga || '');
+    if (changed) {
+      p.ult_recarga = p.ult_mantenimiento;
+      if (!p.prox_mantenimiento || (prev && p.prox_mantenimiento === prev.prox_mantenimiento)) p.prox_mantenimiento = addMonths(p.ult_mantenimiento, cfg('MESES_MANTENIMIENTO'));
+      if (!p.prox_recarga || (prev && p.prox_recarga === prev.prox_recarga)) p.prox_recarga = addMonths(p.ult_mantenimiento, cfg('MESES_RECARGA'));
+    }
+  }
+  const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[\s\-_.\/]+/g, '').toUpperCase();
   const dup = (S.data.extintores || []).find(x => norm(x.codigo) === norm(p.codigo) && x.id !== id && x.estado !== 'Dado de Baja');
   if (dup && !confirm('Ya existe un extintor con el código ' + dup.codigo + '. El servidor lo rechazará. ¿Guardar igual?')) return;
   p.id = id || uuid();
   const f = $('#ef-foto').files[0];
   if (f) p.foto = { data: await compressImage(f), mime: 'image/jpeg' };
   await enqueue('extintor.save', p, (id ? 'Edición ' : 'Alta ') + p.codigo);
-  toast(S.online ? 'Guardado.' : 'Guardado en el celular. Se enviará al tener señal.');
+  toast(S.online ? 'Extintor guardado.' : 'Guardado en el celular. Se enviará al tener señal.');
   go('#/ext/' + p.id);
 }
 
@@ -668,22 +881,22 @@ function viewInspeccion(id) {
           <div><label>Hora</label><input name="hora" type="time" value="${nowTime()}"></div>
         </div>
         <label>Inspector</label><input name="inspector" value="${esc(me().nombre)}" required>
-        <div class="row" style="margin-top:8px"><input name="gps" id="ins-gps" class="grow" placeholder="GPS (opcional)" readonly><button type="button" class="btn sec sm" onclick="getGps()">📍 GPS</button></div>
+        <div class="row" style="margin-top:10px"><input name="gps" id="ins-gps" class="grow" placeholder="GPS (opcional)" readonly><button type="button" class="btn sec sm" onclick="getGps()">${ico('pin')} GPS</button></div>
       </div>
-      <div class="card"><h2>Lista de verificación</h2>
-        <div class="row" style="justify-content:flex-end;gap:6px;margin-bottom:4px"><button type="button" class="btn ghost sm" onclick="allChk('C')">Todo conforme</button></div>
-        ${items.map(k => `
-          <div class="chk"><span class="q">${CHECK_LABELS[k] || k}</span>
-            <div class="seg" data-k="${k}">
-              <button type="button" class="c on" onclick="setChk(this,'C')">✓</button>
-              <button type="button" class="nc" onclick="setChk(this,'NC')">✗</button>
+      <div class="card"><h2>Anomalías <button type="button" class="btn ghost sm" style="margin-left:auto" onclick="allChk('C')">Todo conforme</button></h2>
+        <p class="sub" style="margin:-6px 0 6px">✓ conforme · ✗ anomalía encontrada · N/A no aplica</p>
+        ${items.map((k, n) => `
+          <div class="chk"><span class="n">${n + 1}</span><span class="q">${esc(chkLabel(k))}</span>
+            <div class="seg" data-k="${k}" role="group" aria-label="${esc(chkLabel(k))}">
+              <button type="button" class="c on" onclick="setChk(this,'C')" aria-label="Conforme">✓</button>
+              <button type="button" class="nc" onclick="setChk(this,'NC')" aria-label="Anomalía">✗</button>
               <button type="button" class="na" onclick="setChk(this,'NA')">N/A</button>
             </div>
           </div>`).join('')}
-        <div style="margin-top:12px">Resultado: <span id="ins-res" class="badge b-ok">Apto</span></div>
+        <div class="verdict"><span>Resultado</span><span id="ins-res" class="badge b-ok">Apto</span></div>
       </div>
       <div class="card">
-        <label style="margin-top:0">Observaciones</label><textarea name="observaciones" placeholder="Describa las no conformidades y la acción tomada"></textarea>
+        <label style="margin-top:0">${items.length + 1}. Otros (indicar) / observaciones</label><textarea name="observaciones" placeholder="Describa las anomalías y la acción tomada"></textarea>
         <label>Fotografía (opcional)</label><input type="file" accept="image/*" capture="environment" id="ins-foto">
       </div>
       <button class="btn block">Guardar inspección</button>
@@ -783,13 +996,12 @@ async function saveServicio(ev, extId) {
 function viewInspecciones() {
   const l = (S.data.inspecciones || []).slice().sort((a, b) => (b.fecha + (b.hora || '')).localeCompare(a.fecha + (a.hora || ''))).slice(0, 200);
   shell('Inspecciones', `
-    <div class="row" style="margin-bottom:12px"><button class="btn grow" onclick="openScanner()">⌗ Escanear QR para inspeccionar</button></div>
-    <div class="card" style="padding:4px 10px"><div class="list">
-      ${l.length ? l.map(i => `<div class="it" onclick="showInspeccion('${i.id}')">
-        <span class="dot ${i.resultado === 'Apto' ? 'd-ok' : 'd-v'}"></span>
-        <div class="grow"><b>${esc(i.codigo)}</b> <span class="sub">${fdate(i.fecha)} ${esc(i.hora || '')}</span>${i._pending ? ' <span class="badge b-i">pendiente</span>' : ''}
+    <div class="row" style="margin-bottom:14px"><button class="btn grow" onclick="openScanner()">${ico('qr')} Escanear QR para inspeccionar</button></div>
+    <div class="card" style="padding:0;overflow:hidden"><div class="list">
+      ${l.length ? l.map(i => `<div class="it ${i.resultado === 'Apto' ? 's-ok' : 's-v'}" onclick="showInspeccion('${i.id}')">
+        <div class="grow"><b class="code">${esc(i.codigo)}</b> <span class="sub num">${fdate(i.fecha)} ${esc(i.hora || '')}</span>${i._pending ? ' <span class="badge b-i">pendiente</span>' : ''}
         <div class="sub">${esc(i.inspector)} · ${esc(empName(i.empresa_id))}</div></div>
-        <span class="badge ${i.resultado === 'Apto' ? 'b-ok' : 'b-v'}">${esc(i.resultado)}</span></div>`).join('') : '<div class="empty">Aún no hay inspecciones.</div>'}
+        <span class="badge ${i.resultado === 'Apto' ? 'b-ok' : 'b-v'}">${esc(i.resultado)}</span></div>`).join('') : '<div class="empty">Aún no hay inspecciones. Escanee el QR de un extintor para empezar.</div>'}
     </div></div>
     <p class="sub">Para inspeccionar, escanee el QR o abra el extintor desde la lista y pulse "Inspeccionar".</p>
   `, { tab: 'ins' });
@@ -816,7 +1028,7 @@ function viewEntregas() {
         <div class="sub">${esc(r.receptor)} · ${esc(r.empresa_receptora)} · ${n} extintor(es)</div></div><span class="btn sec sm">PDF</span></div>`; }).join('') : '<div class="empty">Sin actas de entrega.</div>'}
     </div></div>
     <a class="btn sec sm" href="#/servicios">Ver servicios registrados</a>
-    <button class="btn fab" onclick="go('#/entrega-nueva')">＋ Nueva entrega</button>
+    <button class="btn fab" onclick="go('#/entrega-nueva')">${ico('plus')} Nueva entrega</button>
   `, { tab: 'ent' });
 }
 
@@ -872,9 +1084,9 @@ function printActa(id) {
   w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Acta ${esc(r.numero)}</title>
   <style>body{font:12px Arial;margin:28px;color:#111}h1{font-size:16px;margin:0}h2{font-size:13px;margin:18px 0 6px}
   table{width:100%;border-collapse:collapse}td,th{border:1px solid #999;padding:5px;text-align:left}th{background:#eee}
-  .hd{display:flex;justify-content:space-between;border-bottom:3px solid #b91c1c;padding-bottom:8px}.f{display:flex;gap:40px;margin-top:70px}
+  .hd{display:flex;justify-content:space-between;border-bottom:3px solid #1675AE;padding-bottom:8px}.f{display:flex;gap:40px;margin-top:70px}
   .f div{flex:1;border-top:1px solid #000;text-align:center;padding-top:4px}@media print{button{display:none}}</style></head><body>
-  <div class="hd"><div><h1>ACTA DE ENTREGA DE EXTINTORES</h1><div>${esc(cfg('ORGANIZACION'))}</div></div><div style="text-align:right"><b>${esc(r.numero)}</b><br>Fecha: ${fdate(r.fecha)}</div></div>
+  <div class="hd"><div style="display:flex;gap:14px;align-items:center">${window.LOGO_PAS ? `<img src="${window.LOGO_PAS}" style="height:44px">` : ''}<div><h1>ACTA DE ENTREGA DE EXTINTORES</h1><div>${esc(cfg('ORGANIZACION'))}</div></div></div><div style="text-align:right"><b>${esc(r.numero)}</b><br>Fecha: ${fdate(r.fecha)}</div></div>
   <h2>Datos de quien recibe</h2>
   <table><tr><th>Nombre</th><td>${esc(r.receptor)}</td><th>DNI</th><td>${esc(r.documento)}</td></tr>
   <tr><th>Empresa</th><td>${esc(r.empresa_receptora)}</td><th>Área</th><td>${esc(r.area)}</td></tr>
@@ -901,7 +1113,7 @@ function viewQrPrint() {
   if (typeof qrcode === 'undefined') return shell('Etiquetas QR', '<div class="errbox">El generador de QR no cargó. Abra la app una vez con señal.</div>', { back: true });
   const qr = txt => { const q = qrcode(0, 'M'); q.addData(txt); q.make(); return q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); };
   shell('Etiquetas QR (' + l.length + ')', `
-    <div class="row" style="margin-bottom:12px"><button class="btn grow" onclick="printLabels()">🖨 Imprimir etiquetas</button></div>
+    <div class="row" style="margin-bottom:12px"><button class="btn grow" onclick="printLabels()">${ico('print')} Imprimir etiquetas</button></div>
     <div id="labels" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
       ${l.map(e => `<div class="card" style="text-align:center;padding:10px;margin:0"><div style="width:120px;margin:0 auto">${qr('EMF:' + e.id)}</div><b style="font-size:14px">${esc(e.codigo)}</b><div class="sub">${esc(empName(e.empresa_id))}</div></div>`).join('')}
     </div>`, { back: true, tab: 'ext' });
@@ -919,7 +1131,7 @@ function printLabels() {
 
 let SCAN_STREAM = null;
 async function openScanner() {
-  modal(`<h3 style="margin-top:0">Escanear QR del extintor</h3>
+  modal(`<h3>Escanear QR del extintor</h3>
     <div class="scan"><video id="scan-v" playsinline muted></video></div>
     <p class="sub" id="scan-msg">Apunte la cámara a la etiqueta.</p>
     <div class="row"><input id="scan-code" class="grow" placeholder="…o escriba el código"><button class="btn sm" onclick="scanFound($('#scan-code').value)">Buscar</button></div>
@@ -960,13 +1172,13 @@ function viewUsuarios() {
       ${l.map(u => `<div class="it" onclick="editUser('${u.id}')"><div class="grow"><b>${esc(u.nombre || u.email)}</b> ${u.estado !== 'Activo' ? '<span class="badge b-g">Inactivo</span>' : ''}
         <div class="sub">${esc(u.email)} · ${esc(u.rol)} · ${u.empresa_id ? esc(empName(u.empresa_id)) : '<span style="color:var(--bad)">sin empresa</span>'}</div></div></div>`).join('')}
     </div></div>
-    <button class="btn fab" onclick="editUser('')">＋ Usuario</button>
+    <button class="btn fab" onclick="editUser('')">${ico('plus')} Usuario</button>
   `, { back: true, tab: 'aj' });
 }
 
 function editUser(id) {
   const u = id ? S.data.usuarios.find(x => x.id === id) : {};
-  modal(`<h3 style="margin-top:0">${id ? 'Editar usuario' : 'Nuevo usuario'}</h3>
+  modal(`<h3>${id ? 'Editar usuario' : 'Nuevo usuario'}</h3>
     <form onsubmit="saveUser(event,'${id}')">
       <label>Correo *</label><input name="email" type="email" required value="${esc(u.email || '')}">
       <label>Nombre completo *</label><input name="nombre" required value="${esc(u.nombre || '')}">
@@ -1013,9 +1225,9 @@ async function delUser(id) {
 function showTempPass(email, nombre, pass) {
   const url = location.href.split('#')[0];
   const msg = `Hola ${nombre || ''}, tu acceso a EmerMine Fire:\nApp: ${url}\nUsuario: ${email}\nContraseña temporal: ${pass}\nAl ingresar te pedirá crear tu propia contraseña.`;
-  modal(`<h3 style="margin-top:0">Contraseña temporal</h3>
+  modal(`<h3>Contraseña temporal</h3>
     <p>Usuario: <b>${esc(email)}</b></p>
-    <p style="font-size:26px;font-weight:700;letter-spacing:2px;text-align:center;background:#f3f4f6;padding:12px;border-radius:10px">${esc(pass)}</p>
+    <p style="font-size:26px;font-weight:700;letter-spacing:2px;text-align:center;background:var(--surface2);padding:12px;border-radius:10px">${esc(pass)}</p>
     <p class="sub">Compártala con el usuario. Al ingresar se le pedirá crear su propia contraseña. No se volverá a mostrar.</p>
     <a class="btn block" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(msg)}">Enviar por WhatsApp</a>
     <button class="btn sec block" style="margin-top:8px" onclick="navigator.clipboard&&navigator.clipboard.writeText(${esc(JSON.stringify(msg))});toast('Copiado')">Copiar mensaje</button>
@@ -1034,13 +1246,13 @@ function viewEmpresas() {
         <div class="sub">${cnt[e.id] || 0} extintores · ${ucnt[e.id] || 0} usuarios</div></div></div>`).join('')}
     </div></div>
     <p class="sub">Use una entrada por empresa contratista o área (ej. "UNICON", "PAS / Mantenimiento"). Los inspectores solo ven los extintores de su empresa / área.</p>
-    <button class="btn fab" onclick="editEmp('')">＋ Empresa</button>
+    <button class="btn fab" onclick="editEmp('')">${ico('plus')} Empresa</button>
   `, { back: true, tab: 'aj' });
 }
 
 function editEmp(id) {
   const e = id ? S.data.empresas.find(x => x.id === id) : {};
-  modal(`<h3 style="margin-top:0">${id ? 'Editar' : 'Nueva'} empresa / área</h3>
+  modal(`<h3>${id ? 'Editar' : 'Nueva'} empresa / área</h3>
     <form onsubmit="saveEmp(event,'${id}')">
       <label>Nombre *</label><input name="nombre" required value="${esc(e.nombre || '')}">
       <label>Activa</label><select name="activo"><option value="SI">Sí</option><option value="NO" ${e.activo === 'NO' ? 'selected' : ''}>No</option></select>
@@ -1068,7 +1280,7 @@ function viewPendientes() {
         <div class="sub">${new Date(o.created).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' })}</div>
         ${o.error ? `<div class="sub" style="color:var(--bad)">Error: ${esc(o.error)}</div>` : ''}</div>
         ${o.error ? `<button class="btn sec sm" onclick="retryOp('${o.opId}')">Reintentar</button>` : ''}
-        <button class="btn ghost sm" onclick="dropOp('${o.opId}')">Descartar</button></div>`).join('') : '<div class="empty">Todo está sincronizado ✓</div>'}
+        <button class="btn ghost sm" onclick="dropOp('${o.opId}')">Descartar</button></div>`).join('') : '<div class="empty">Todo está sincronizado.</div>'}
     </div></div>
     ${S.queue.length ? '<button class="btn block" onclick="trySync(true)">Sincronizar ahora</button>' : ''}
     <p class="sub">Los registros hechos sin señal se guardan en este celular y se envían solos al recuperar conexión. No cierre sesión ni borre los datos del navegador mientras haya pendientes.</p>
@@ -1097,7 +1309,16 @@ function viewAjustes() {
       <div class="it" onclick="go('#/empresas')"><div class="grow">Empresas / Áreas</div>›</div>
       <div class="it" onclick="go('#/entregas')"><div class="grow">Entregas</div>›</div>` : ''}
       <div class="it" onclick="viewChangePassword(false)"><div class="grow">Cambiar contraseña</div>›</div>
-      <div class="it" onclick="trySync(true)"><div class="grow">Actualizar datos ahora</div>⟳</div>
+      <div class="it" onclick="trySync(true)"><div class="grow">Actualizar datos ahora</div>${ico('sync')}</div>
+    </div>
+    <div class="card"><h2>Apariencia</h2>
+      <div class="chips" style="margin:0">${[['auto','Automático'],['light','Claro'],['dark','Oscuro']].map(x => `<span class="chip ${getTheme() === x[0] ? 'on' : ''}" onclick="setTheme('${x[0]}');viewAjustes()">${x[1]}</span>`).join('')}</div>
+      <p class="sub" style="margin-bottom:0">Automático sigue el modo del celular. El oscuro descansa la vista en interior mina.</p>
+    </div>
+    <div class="card list" style="padding:4px 10px">
+      <div class="it" onclick="S.filters={q:'',emp:'',sem:'',est:''};xlsListado()"><div class="grow">Listado general de extintores (Excel)</div>${ico('down')}</div>
+      <div class="it" onclick="xlsImportar()"><div class="grow">Carga masiva desde Excel</div>${ico('up')}</div>
+      <div class="it" onclick="xlsPlantilla()"><div class="grow">Descargar plantilla vacía</div>${ico('xls')}</div>
     </div>
     ${isAdmin() ? `<form class="card" onsubmit="saveCfg(event)"><h2>Parámetros</h2>
       <div class="grid2">${keys.concat(ph).map(k => `<div><label>${esc(k.replace(/_/g, ' ').toLowerCase())}</label><input name="${esc(k)}" value="${esc(c[k] || '')}"></div>`).join('')}</div>
@@ -1111,6 +1332,351 @@ async function saveCfg(ev) {
   ev.preventDefault(); const fd = new FormData(ev.target), p = {}; fd.forEach((v, k) => p[k] = String(v).trim());
   try { await onlineOp('config.save', p); toast('Parámetros guardados.'); }
   catch (e) { toast(e.offline ? 'Necesita señal.' : e.message, 3500); }
+}
+
+/* ============================ Excel: plantilla, carga masiva y listado general ============================ */
+const XLS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+let XLS_P = null;
+function loadExcel() {
+  if (window.ExcelJS) return Promise.resolve();
+  if (XLS_P) return XLS_P;
+  XLS_P = new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = XLS_URL;
+    s.onload = () => res();
+    s.onerror = () => { XLS_P = null; s.remove(); rej(new Error('No se pudo cargar el módulo de Excel. Abra la app con señal una vez.')); };
+    document.head.appendChild(s);
+  });
+  return XLS_P;
+}
+
+/* Columnas del formato (A–J) y anomalías (K–AA) */
+const FMT_COLS = [['ÍTEM', 5.9], ['ÁREA O CONTRATISTA RESPONSABLE', 36], ['UBICACIÓN', 40], ['TIPO', 8.5], ['CAPACIDAD', 10],
+  ['Nº EXTINTOR', 14], ['NÚMERO DE SERIE', 13], ['FECHA DE MANTENIMIENTO Y RECARGA', 14], ['PRÓXIMA PRUEBA HIDROSTÁTICA', 14], ['MARCA', 12]];
+const FMT_ITEMS = ['1. Ubicado', '2. Acceso Obstruido', '3. Zona y/o Extintor no numerados', '4. Pictograma de clase de fuego',
+  '5. Pictograma de forma de uso', '6. Etiqueta de recarga', '7. Colgador: Ausente / inadecuado', '8. Sin pasador y/o precinto de seguridad',
+  '9. Manómetro: con presión inadecuada / dañado', '10. Manija de acarreo/palanca de activación de cabeza/pistola dañada/ausente',
+  '11. Manguera: Dañada / Ausente', '12. Tobera, pitón o pistola: Dañada / Ausente', '13. Abrazadera o sujetador de manguera: inadecuado/dañado/ausente',
+  '14. Cilindro / botella / cartucho / impulso en mal estado', '15. Pintura deteriorada en: Cilindro / Botella / Cartucho impulsor', '16. Prueba Hidrostática'];
+const FMT_KEYS = ['ubicado', 'acceso', 'numerado', 'picto_clase', 'picto_uso', 'etiqueta_recarga', 'colgador', 'pasador_precinto', 'manometro', 'manija', 'manguera', 'tobera', 'abrazadera', 'cilindro', 'pintura', 'ph'];
+const TIPOS_XLS = ['PQS', 'CO2', 'AGUA', 'ESPUMA', 'K', 'HALOTRON'];
+
+const xBorder = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+const xDate = iso => { if (!iso) return null; const p = String(iso).slice(0, 10).split('-').map(Number); return p.length === 3 && p[0] ? new Date(Date.UTC(p[0], p[1] - 1, p[2])) : null; };
+const toTipo = a => { const u = String(a || '').toUpperCase(); return u.indexOf('ACETATO') >= 0 ? 'K' : u === 'POLVO ABC' ? 'PQS' : u; };
+
+/** Crea la hoja FORMATO con el mismo diseño del formato de PASHSA. rows = arreglo de filas ya armadas. */
+function buildFormato(wb, title, subtitle, rows, opts) {
+  opts = opts || {};
+  const lastCol = opts.extraCol ? 28 : 27;
+  const ws = wb.addWorksheet('FORMATO', {
+    pageSetup: { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: '3:5',
+      margins: { left: 0.3, right: 0.3, top: 0.4, bottom: 0.4, header: 0.2, footer: 0.2 } },
+    views: [{ state: 'frozen', xSplit: 0, ySplit: 5 }],
+    headerFooter: { oddFooter: '&L&8EmerMine Fire&R&8Página &P de &N' }
+  });
+  FMT_COLS.forEach((c, i) => { ws.getColumn(i + 1).width = c[1]; });
+  for (let c = 11; c <= 26; c++) ws.getColumn(c).width = 5.7;
+  ws.getColumn(27).width = 32.6;
+  if (opts.extraCol) ws.getColumn(28).width = 13;
+
+  // Filas 1–2: logo + título
+  ws.getRow(1).height = 40; ws.getRow(2).height = 22;
+  ws.mergeCells(1, 4, 1, lastCol); ws.mergeCells(2, 4, 2, lastCol); ws.mergeCells(1, 1, 2, 3);
+  const t1 = ws.getCell(1, 4); t1.value = title; t1.font = { name: 'Arial', size: 15, bold: true, color: { argb: 'FF0F2233' } }; t1.alignment = { vertical: 'middle' };
+  const t2 = ws.getCell(2, 4); t2.value = subtitle; t2.font = { name: 'Arial', size: 9, color: { argb: 'FF587084' } }; t2.alignment = { vertical: 'top' };
+  if (window.LOGO_PAS) {
+    const id = wb.addImage({ base64: window.LOGO_PAS, extension: 'png' });
+    ws.addImage(id, { tl: { col: 0.15, row: 0.15 }, ext: { width: 180, height: 58 } });
+  }
+
+  // Encabezado filas 3–5
+  ws.getRow(3).height = 15.75; ws.getRow(4).height = 12.75; ws.getRow(5).height = 105.75;
+  const head = (cell, v, rot) => {
+    cell.value = v; cell.font = { name: 'Arial', size: rot ? 8 : 9, bold: true };
+    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true, textRotation: rot ? 90 : 0 };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } };
+    cell.border = xBorder;
+  };
+  FMT_COLS.forEach((c, i) => { ws.mergeCells(3, i + 1, 5, i + 1); head(ws.getCell(3, i + 1), c[0]); });
+  ws.mergeCells(3, 11, 3, 27); head(ws.getCell(3, 11), 'ANOMALÍAS');
+  FMT_ITEMS.forEach((t, i) => { ws.mergeCells(4, 11 + i, 5, 11 + i); head(ws.getCell(4, 11 + i), t, true); });
+  ws.mergeCells(4, 27, 5, 27); head(ws.getCell(4, 27), '17. Otros (Indicar)');
+  if (opts.extraCol) { ws.mergeCells(3, 28, 5, 28); head(ws.getCell(3, 28), 'FECHA ÚLTIMA INSPECCIÓN'); }
+  for (let r = 3; r <= 5; r++) for (let c = 1; c <= lastCol; c++) { const x = ws.getCell(r, c); x.border = xBorder; if (!x.fill || !x.fill.fgColor) x.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } }; }
+
+  // Datos desde la fila 6
+  rows.forEach((vals, i) => {
+    const r = ws.getRow(6 + i); r.height = 30;
+    for (let c = 1; c <= lastCol; c++) {
+      const cell = r.getCell(c), v = vals[c - 1];
+      if (v && typeof v === 'object' && !(v instanceof Date) && v.mark) {
+        cell.value = v.mark;
+        cell.font = v.wing ? { name: 'Wingdings', size: 12, color: { argb: v.color } } : { name: 'Arial', size: 8, color: { argb: v.color } };
+      } else {
+        cell.value = v == null ? null : v;
+        cell.font = { name: 'Arial', size: 10 };
+      }
+      if (v instanceof Date || c === 8 || c === 9 || c === 28) cell.numFmt = 'dd/mm/yyyy';
+      cell.alignment = { vertical: 'middle', horizontal: (c === 2 || c === 3 || c === 27) ? 'left' : 'center', wrapText: true };
+      cell.border = xBorder;
+    }
+  });
+  return ws;
+}
+
+function saveBlob(buf, name) {
+  const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+
+/** Listado general en el formato oficial (para fiscalizaciones). Respeta los filtros de la lista. */
+async function xlsListado() {
+  const l = filteredList();
+  if (!l.length) return toast('No hay extintores con esos filtros.');
+  toast('Generando listado…');
+  try { await loadExcel(); } catch (e) { return toast(e.message, 4000); }
+  const lastIns = {};
+  (S.data.inspecciones || []).forEach(i => { const k = i.extintor_id, cur = lastIns[k]; if (!cur || (i.fecha + (i.hora || '')) > (cur.fecha + (cur.hora || ''))) lastIns[k] = i; });
+  const keys = FMT_KEYS;
+  const rows = l.map((e, n) => {
+    const i = lastIns[e.id];
+    const marks = keys.map(k => !i || !i[k] ? null : i[k] === 'NC' ? { mark: 'û', wing: true, color: 'FFC00000' } : i[k] === 'NA' ? { mark: 'N/A', color: 'FF7F7F7F' } : { mark: 'ü', wing: true, color: 'FF00A050' });
+    return [n + 1, empName(e.empresa_id), [e.ubicacion, e.nivel].filter(Boolean).join(' · '), toTipo(e.agente), e.capacidad || '', e.codigo, e.serie || '',
+      xDate(e.ult_mantenimiento || e.ult_recarga), xDate(e.prox_ph), e.marca || ''].concat(marks, [i ? (i.observaciones || '') : '', i ? xDate(i.fecha) : null]);
+  });
+  const f = S.filters, partes = [];
+  if (!seesAll()) partes.push(empName(me().empresa_id));
+  else if (f.emp) partes.push(empName(f.emp));
+  if (f.sem) partes.push(semLabel[f.sem]);
+  if (f.est && f.est !== '*') partes.push(f.est);
+  if (f.q) partes.push('búsqueda "' + f.q + '"');
+  const sub = (cfg('ORGANIZACION') || 'U.M. Huarón') + ' · ' + (partes.length ? partes.join(' · ') : 'Todas las áreas y contratistas') + ' · ' + l.length + ' extintores · Generado el ' + fdate(today()) + ' ' + nowTime() + ' por ' + (me().nombre || me().email) + ' · Anomalías según la última inspección: ü conforme, û anomalía';
+  const wb = new ExcelJS.Workbook(); wb.creator = 'EmerMine Fire'; wb.created = new Date();
+  buildFormato(wb, 'LISTADO GENERAL DE EXTINTORES', sub, rows, { extraCol: true });
+  const buf = await wb.xlsx.writeBuffer();
+  saveBlob(buf, 'Listado_extintores_' + today() + '.xlsx');
+  toast('Listado descargado (' + l.length + ' extintores).', 3500);
+}
+
+/** Plantilla vacía para la carga masiva */
+async function xlsPlantilla() {
+  toast('Preparando plantilla…');
+  try { await loadExcel(); } catch (e) { return toast(e.message, 4000); }
+  const wb = new ExcelJS.Workbook(); wb.creator = 'EmerMine Fire';
+  const N = 300, blank = []; for (let i = 0; i < N; i++) blank.push([i + 1]);
+  const emp = seesAll() ? (S.data.empresas || []).filter(x => x.activo !== 'NO').map(x => x.nombre).sort((a, b) => a.localeCompare(b)) : [empName(me().empresa_id)];
+  const ws = buildFormato(wb, 'REGISTRO DE EXTINTORES — CARGA MASIVA', 'Llene una fila por extintor desde la fila 6. Obligatorio: Nº EXTINTOR. Fechas en formato dd/mm/aaaa. Las columnas de anomalías (K–AA) no se cargan.', blank);
+  const ls = wb.addWorksheet('Listas', { state: 'veryHidden' });
+  emp.forEach((n, i) => { ls.getCell(i + 1, 1).value = n; });
+  TIPOS_XLS.forEach((n, i) => { ls.getCell(i + 1, 2).value = n; });
+  for (let r = 6; r < 6 + N; r++) {
+    ws.getCell(r, 2).dataValidation = { type: 'list', allowBlank: true, formulae: ['Listas!$A$1:$A$' + Math.max(1, emp.length)], showErrorMessage: false };
+    ws.getCell(r, 4).dataValidation = { type: 'list', allowBlank: true, formulae: ['Listas!$B$1:$B$' + TIPOS_XLS.length], showErrorMessage: false };
+    [8, 9].forEach(c => { ws.getCell(r, c).dataValidation = { type: 'date', operator: 'greaterThan', allowBlank: true, formulae: [new Date(Date.UTC(1990, 0, 1))], showInputMessage: true, promptTitle: 'Fecha', prompt: 'Escriba la fecha como dd/mm/aaaa', showErrorMessage: true, errorTitle: 'Fecha', error: 'Escriba una fecha válida (dd/mm/aaaa).' }; });
+  }
+  const ins = wb.addWorksheet('Instrucciones');
+  ins.getColumn(1).width = 110;
+  ['CÓMO LLENAR LA PLANTILLA', '',
+    '1. Una fila por extintor, desde la fila 6 de la hoja FORMATO. No cambie el orden ni los títulos de las columnas.',
+    '2. Nº EXTINTOR (código interno) es obligatorio y no puede repetirse. Si el código ya existe en la app, la fila actualiza ese extintor.',
+    '3. ÁREA O CONTRATISTA RESPONSABLE: elija de la lista. ' + (seesAll() ? 'Si su empresa no aparece, pida al administrador que la registre.' : 'Para su usuario siempre se usa: ' + empName(me().empresa_id) + '.'),
+    '4. TIPO: PQS, CO2, AGUA, ESPUMA, K (acetato de potasio) o HALOTRON.',
+    '5. CAPACIDAD: por ejemplo "6 kg", "9 kg", "10 lb". Si escribe solo el número se asume kg.',
+    '6. FECHA DE MANTENIMIENTO Y RECARGA: fecha del último servicio. La app calcula el próximo mantenimiento y la próxima recarga.',
+    '7. PRÓXIMA PRUEBA HIDROSTÁTICA: fecha completa (dd/mm/aaaa). Si solo conoce el año, escriba el año (se toma el 1 de enero).',
+    '8. Las columnas de anomalías (K a AA) se llenan con las inspecciones en la app; en la carga masiva se ignoran.',
+    '9. Guarde como Excel (.xlsx) y cárguelo en la app: Extintores › Carga masiva.'
+  ].forEach((t, i) => { const c = ins.getCell(i + 1, 1); c.value = t; c.font = { name: 'Arial', size: i ? 11 : 13, bold: !i }; c.alignment = { wrapText: true, vertical: 'top' }; });
+  const buf = await wb.xlsx.writeBuffer();
+  saveBlob(buf, 'Plantilla_carga_extintores.xlsx');
+  toast('Plantilla descargada.');
+}
+
+/* ---------- Lectura del Excel cargado ---------- */
+const xNorm = s => String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
+const xCode = s => xNorm(s).replace(/[\s\-_.\/]+/g, '');
+function xCell(c) {
+  let v = c && c.value;
+  if (v == null) return '';
+  if (v instanceof Date) return v;
+  if (typeof v === 'object') {
+    if (v.richText) return v.richText.map(t => t.text).join('');
+    if ('result' in v) v = v.result;
+    else if (v.text != null) return String(v.text);
+    else if (v.error) return '';
+    if (v instanceof Date) return v;
+    if (v == null) return '';
+  }
+  return v;
+}
+const MESES = { ENE: 1, FEB: 2, MAR: 3, ABR: 4, MAY: 5, JUN: 6, JUL: 7, AGO: 8, SET: 9, SEP: 9, OCT: 10, NOV: 11, DIC: 12 };
+/** Devuelve 'AAAA-MM-DD', '' si vacío o lanza error si no se reconoce */
+function xParseDate(v) {
+  const iso = (y, m, d) => {
+    y = +y; m = +m; d = +d;
+    if (y < 100) y += 2000;
+    if (!(y >= 1980 && y <= 2100 && m >= 1 && m <= 12 && d >= 1 && d <= 31)) throw new Error('fecha fuera de rango');
+    const last = new Date(y, m, 0).getDate(); if (d > last) d = last;
+    return y + '-' + pad(m) + '-' + pad(d);
+  };
+  if (v === '' || v == null) return '';
+  if (v instanceof Date) return iso(v.getUTCFullYear(), v.getUTCMonth() + 1, v.getUTCDate());
+  if (typeof v === 'number') {
+    if (v >= 1980 && v <= 2100 && Number.isInteger(v)) return iso(v, 1, 1);
+    if (v > 25000 && v < 80000) { const d = new Date(Date.UTC(1899, 11, 30) + Math.round(v) * 864e5); return iso(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()); }
+    throw new Error('fecha no reconocida (' + v + ')');
+  }
+  const s = String(v).trim().toUpperCase();
+  if (!s || s === '-' || s === '—' || s === 'N/A' || s === 'NA') return '';
+  let m;
+  if ((m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))) return iso(m[1], m[2], m[3]);
+  if ((m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/))) return iso(m[3], m[2], m[1]);
+  if ((m = s.match(/^(\d{1,2})[-\/.](\d{4})$/))) return iso(m[2], m[1], 1);
+  if ((m = s.match(/^(\d{4})$/))) return iso(m[1], 1, 1);
+  if ((m = s.match(/^([A-Z]{3})[A-Z]*[-\/.\s]+(\d{2,4})$/)) && MESES[m[1]]) return iso(m[2], MESES[m[1]], 1);
+  if ((m = s.match(/^(\d{1,2})[-\/.\s]+([A-Z]{3})[A-Z]*[-\/.\s]+(\d{2,4})$/)) && MESES[m[2]]) return iso(m[3], MESES[m[2]], m[1]);
+  throw new Error('fecha no reconocida ("' + String(v).slice(0, 20) + '")');
+}
+function xAgente(v) {
+  const u = xNorm(v);
+  if (!u) return '';
+  if (/ACETATO|POTASIO|^K$|CLASE K|^K\b/.test(u)) return 'Acetato de Potasio';
+  if (/CO2|CO 2|DIOXIDO|GAS CARB/.test(u)) return 'CO2';
+  if (/PQS|POLVO|^ABC$|^BC$|QUIMICO SECO/.test(u)) return 'PQS';
+  if (/AGUA/.test(u)) return 'Agua';
+  if (/ESPUMA|AFFF/.test(u)) return 'Espuma';
+  if (/HALOTRON|HALON|HCFC/.test(u)) return 'Halotron';
+  return 'Otro';
+}
+function xCapacidad(v) {
+  if (v === '' || v == null) return '';
+  if (typeof v === 'number') return v + ' kg';
+  const s = String(v).trim();
+  if (/^\d+([.,]\d+)?$/.test(s)) return s.replace(',', '.') + ' kg';
+  return s.replace(/(\d)\s*(KGS?|KILOS?|KILOGRAMOS?)\.?$/i, '$1 kg').replace(/(\d)\s*(LBS?|LIBRAS?)\.?$/i, '$1 lb');
+}
+const XLS_FIELDS = [
+  ['fila', /^ITEM$|^N[º°O]?$/], ['serie', /SERIE/], ['codigo', /EXTINTOR|CODIGO/], ['empresa', /AREA|CONTRATISTA|EMPRESA/],
+  ['ubicacion', /UBICACION/], ['agente', /^TIPO|AGENTE/], ['capacidad', /CAPACIDAD/], ['fecha_mant', /MANTENIMIENTO|RECARGA/],
+  ['prox_ph', /HIDROSTATICA/], ['marca', /MARCA/], ['clase', /^CLASE$/]
+];
+function xDetect(ws) {
+  for (let r = 1; r <= Math.min(20, ws.rowCount); r++) {
+    const row = ws.getRow(r), map = {};
+    let hasExt = false;
+    row.eachCell({ includeEmpty: false }, (c, col) => {
+      const t = xNorm(xCell(c)); if (!t || typeof t !== 'string') return;
+      if (/EXTINTOR|CODIGO/.test(t) && !/SERIE/.test(t)) hasExt = true;
+      for (const [k, re] of XLS_FIELDS) { if (map[k] == null && re.test(t)) { map[k] = { col: col, head: t }; break; } }
+    });
+    if (hasExt && map.codigo && Object.keys(map).length >= 4) return { row: r, map: map };
+  }
+  return null;
+}
+
+function xlsImportar() {
+  modal(`<h3>Carga masiva de extintores</h3>
+    <p class="sub" style="margin-top:0">Use el formato de registro de extintores (.xlsx). Cada fila crea un extintor nuevo o actualiza el que ya tenga el mismo Nº de extintor.${seesAll() ? '' : ' Todos se registran a nombre de <b>' + esc(empName(me().empresa_id)) + '</b>.'}</p>
+    <button class="btn sec block" onclick="xlsPlantilla()">${ico('down')} Descargar plantilla vacía</button>
+    <label class="btn block" style="margin-top:10px;color:var(--accent-ink)">${ico('xls')} Elegir archivo Excel<input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hide" onchange="xlsLeer(this.files[0])"></label>
+    <div id="xi-msg" class="sub" style="margin-top:10px"></div>
+    <button class="btn ghost block" style="margin-top:6px" onclick="closeModal()">Cancelar</button>`);
+}
+
+let XLS_ROWS = [];
+async function xlsLeer(file) {
+  if (!file) return;
+  const msg = $('#xi-msg'); if (msg) msg.textContent = 'Leyendo ' + file.name + '…';
+  try {
+    if (/\.xls$/i.test(file.name)) throw new Error('El archivo es .xls (Excel antiguo). Ábralo en Excel y guárdelo como .xlsx.');
+    await loadExcel();
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(await file.arrayBuffer());
+    let ws = wb.getWorksheet('FORMATO'), det = ws && xDetect(ws);
+    if (!det) { for (const w of wb.worksheets) { const d = xDetect(w); if (d) { ws = w; det = d; break; } } }
+    if (!det) throw new Error('No se encontró la fila de títulos (debe tener al menos "Nº EXTINTOR" y "NÚMERO DE SERIE"). Use la plantilla.');
+    const M = det.map;
+    if (!M.codigo) throw new Error('No se encontró la columna "Nº EXTINTOR".');
+    const emps = S.data.empresas || [];
+    const byCode = {}; (S.data.extintores || []).forEach(e => { if (e.estado !== 'Dado de Baja') byCode[xCode(e.codigo)] = e; });
+    const ok = [], bad = [], seen = {};
+    const get = (row, k) => M[k] ? xCell(row.getCell(M[k].col)) : '';
+    for (let r = det.row + 1; r <= ws.rowCount; r++) {
+      const row = ws.getRow(r);
+      const codigoRaw = get(row, 'codigo');
+      const codigo = String(codigoRaw instanceof Date ? '' : codigoRaw).replace(/\s+/g, ' ').trim().toUpperCase();
+      if (codigo && xNorm(codigo) === M.codigo.head) continue;           // celdas combinadas del título
+      const otros = ['serie', 'ubicacion', 'capacidad', 'marca'].filter(k => { const x = String(get(row, k)).trim(); return x && xNorm(x) !== (M[k] || {}).head; });
+      if (!codigo) { if (otros.length) bad.push({ fila: r, codigo: '', error: 'Falta el Nº de extintor.' }); continue; }
+      try {
+        if (seen[xCode(codigo)]) throw new Error('Código repetido en el archivo (fila ' + seen[xCode(codigo)] + ').');
+        seen[xCode(codigo)] = r;
+        const item = { fila: r, codigo: codigo, serie: String(get(row, 'serie')).trim(), marca: String(get(row, 'marca')).trim(),
+          ubicacion: String(get(row, 'ubicacion')).replace(/\s+/g, ' ').trim(), capacidad: xCapacidad(get(row, 'capacidad')),
+          agente: xAgente(get(row, 'agente')), clase: String(get(row, 'clase')).trim().toUpperCase() };
+        if (item.clase && CLASES.indexOf(item.clase) < 0) item.clase = '';
+        try { item.fecha_mant = xParseDate(get(row, 'fecha_mant')); } catch (e) { throw new Error('Fecha de mantenimiento: ' + e.message); }
+        try { item.prox_ph = xParseDate(get(row, 'prox_ph')); } catch (e) { throw new Error('Prueba hidrostática: ' + e.message); }
+        const empTxt = String(get(row, 'empresa')).trim();
+        if (seesAll()) {
+          const prev = byCode[xCode(codigo)];
+          const em = empTxt ? emps.find(x => xCode(x.nombre) === xCode(empTxt)) : null;
+          if (empTxt && !em) throw new Error('Área / contratista "' + empTxt + '" no está registrada.');
+          if (!em && !prev) throw new Error('Falta el área o contratista responsable.');
+          item.empresa_id = em ? em.id : prev.empresa_id; item.empresa = em ? em.nombre : empName(prev.empresa_id);
+        } else {
+          item.empresa_id = me().empresa_id; item.empresa = empName(me().empresa_id);
+          const prev = byCode[xCode(codigo)];
+          if (prev && prev.empresa_id !== me().empresa_id) throw new Error('El código ya está registrado por otra empresa / área.');
+        }
+        item._existe = !!byCode[xCode(codigo)];
+        ok.push(item);
+      } catch (e) { bad.push({ fila: r, codigo: codigo, error: e.message }); }
+    }
+    if (!ok.length && !bad.length) throw new Error('El archivo no tiene extintores debajo de los títulos.');
+    if (ok.length > 1500) throw new Error('Máximo 1500 extintores por carga. Divida el archivo.');
+    XLS_ROWS = ok;
+    xlsPreview(file.name, ok, bad);
+  } catch (e) {
+    if (msg) { msg.className = 'errbox'; msg.textContent = e.message; } else toast(e.message, 4000);
+  }
+}
+
+function xlsPreview(name, ok, bad) {
+  const nuevos = ok.filter(x => !x._existe).length, act = ok.length - nuevos;
+  modal(`<h3>Revisar carga</h3>
+    <p class="sub" style="margin-top:0">${esc(name)}</p>
+    <div class="metrics" style="margin-bottom:12px;grid-template-columns:repeat(3,minmax(0,1fr))">
+      <div class="metric" style="cursor:default"><div class="n num" style="color:var(--ok)">${nuevos}</div><div class="l">Nuevos</div></div>
+      <div class="metric" style="cursor:default"><div class="n num" style="color:var(--accent)">${act}</div><div class="l">Se actualizan</div></div>
+      <div class="metric" style="cursor:default"><div class="n num" style="color:${bad.length ? 'var(--bad)' : 'var(--ink)'}">${bad.length}</div><div class="l">Con error</div></div>
+    </div>
+    ${bad.length ? `<div class="errbox" style="max-height:170px;overflow:auto"><b>Filas que no se cargarán:</b><br>${bad.slice(0, 80).map(b => `Fila ${b.fila}${b.codigo ? ' (' + esc(b.codigo) + ')' : ''}: ${esc(b.error)}`).join('<br>')}${bad.length > 80 ? '<br>…' : ''}</div>` : ''}
+    ${ok.length ? `<div style="overflow-x:auto;max-height:260px;border:1px solid var(--line);border-radius:10px"><table style="font-size:13px">
+      <tr><th>Fila</th><th>Nº ext.</th><th>Área</th><th>Tipo</th><th>Cap.</th><th>Mant./recarga</th><th>Próx. PH</th><th></th></tr>
+      ${ok.slice(0, 60).map(x => `<tr><td class="num">${x.fila}</td><td style="white-space:nowrap"><b>${esc(x.codigo)}</b></td><td>${esc(x.empresa)}</td><td>${esc(toTipo(x.agente) || '—')}</td><td>${esc(x.capacidad)}</td><td class="num">${fdate(x.fecha_mant)}</td><td class="num">${fdate(x.prox_ph)}</td><td>${x._existe ? '<span class="badge b-i">actualiza</span>' : '<span class="badge b-ok">nuevo</span>'}</td></tr>`).join('')}
+    </table></div>${ok.length > 60 ? `<p class="sub">Mostrando 60 de ${ok.length}.</p>` : ''}` : ''}
+    ${ok.length ? `<button class="btn block" style="margin-top:14px" id="xi-go" onclick="xlsEnviar()">${ico('up')} Cargar ${ok.length} extintor(es)</button>` : ''}
+    <p class="sub">La carga necesita señal. Las celdas vacías no borran datos de los extintores que ya existen.</p>
+    <button class="btn ghost block" onclick="closeModal()">Cancelar</button>`);
+}
+
+async function xlsEnviar() {
+  const b = $('#xi-go'); if (b) { b.disabled = true; b.textContent = 'Cargando…'; }
+  try {
+    const rows = XLS_ROWS.map(x => { const o = Object.assign({}, x); delete o._existe; return o; });
+    const r = await onlineOp('extintor.bulk', { rows: rows });
+    const er = r.errores || [];
+    modal(`<h3>Carga terminada</h3>
+      <div class="okbox">${r.creados || 0} extintor(es) nuevo(s) · ${r.actualizados || 0} actualizado(s)</div>
+      ${er.length ? `<div class="errbox" style="max-height:220px;overflow:auto"><b>${er.length} fila(s) rechazada(s) por el servidor:</b><br>${er.map(x => `Fila ${esc(x.fila)} (${esc(x.codigo)}): ${esc(x.error)}`).join('<br>')}</div>` : ''}
+      <button class="btn block" onclick="closeModal();S.filters={q:'',emp:'',sem:'',est:''};go('#/extintores');viewList()">Ver extintores</button>`);
+    XLS_ROWS = [];
+  } catch (e) {
+    if (b) { b.disabled = false; b.textContent = 'Reintentar carga'; }
+    toast(e.offline ? 'Sin señal. La carga masiva necesita conexión.' : e.message, 4500);
+  }
 }
 
 /* ============================ Modal, imágenes ============================ */

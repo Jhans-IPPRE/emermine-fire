@@ -1,6 +1,7 @@
 /* EmerMine Fire — Service Worker: permite abrir la app sin señal. */
-const CACHE = 'emermine-v1.0.1';
-const SHELL = ['./', 'index.html', 'manifest.json', 'icon.svg',
+const CACHE = 'emermine-v1.1.0';
+const SHELL = ['./', 'index.html', 'manifest.json', 'icon.svg', 'logo.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js'];
 
 self.addEventListener('install', e => {
@@ -15,7 +16,7 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;                         // las llamadas al servidor (POST) no se tocan
   const url = new URL(req.url);
-  if (url.hostname.indexOf('google') >= 0) return;          // Apps Script / Drive siempre en red
+  if (/(^|\.)(script|drive|docs)\.google\.com$|googleusercontent\.com$/.test(url.hostname)) return;   // Apps Script / Drive siempre en red (las fuentes sí se guardan)
   // Red primero para la app (para recibir actualizaciones); si no hay señal, usar la copia guardada.
   // Con señal débil, si la red no responde en 4 s se usa la copia guardada.
   const net = fetch(req).then(res => {
