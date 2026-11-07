@@ -1,5 +1,5 @@
 /* SIGEX PASH — Service Worker: permite abrir la app sin señal. */
-const CACHE = 'emermine-v1.1.1';
+const CACHE = 'emermine-v1.2.0';
 const SHELL = ['./', 'index.html', 'manifest.json', 'icon.svg', 'logo.js',
   'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js'];
@@ -30,5 +30,14 @@ self.addEventListener('fetch', e => {
     const t = setTimeout(() => cached().then(finish), 4000);
     net.then(r => { clearTimeout(t); finish(r); })
        .catch(() => { clearTimeout(t); cached().then(r => r ? finish(r) : finish(Response.error())); });
+  }));
+});
+
+/* Al tocar la notificación de vencimiento, abrir la app */
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(l => {
+    for (const c of l) { if ('focus' in c) return c.focus(); }
+    return clients.openWindow((e.notification.data && e.notification.data.url) || './');
   }));
 });

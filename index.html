@@ -216,7 +216,7 @@ input[type=checkbox]{width:auto;min-height:auto;accent-color:var(--accent)}
    CONFIGURACIÓN — pegue aquí la URL de su aplicación web de Apps Script
    ====================================================================== */
 const API_URL = 'https://script.google.com/macros/s/AKfycbyJPOA1PYAGsdeN_OnugP_T6C1KESrnu-7lACU8Mtrv5_nTEOEzVAxuplcb-MaTVFmU/exec';   // termina en /exec
-const APP_VERSION = '1.1.1';
+const APP_VERSION = '1.2.0';
 
 const CHECK_LABELS = {
   ubicado: 'Ubicado', acceso: 'Acceso obstruido', numerado: 'Zona y/o extintor no numerados',
@@ -256,6 +256,7 @@ const IC = {
   pin: '<path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
   sync: '<path d="M20 11a8 8 0 0 0-14-4.5L4 9"/><path d="M4 4v5h5"/><path d="M4 13a8 8 0 0 0 14 4.5L20 15"/><path d="M20 20v-5h-5"/>',
+  bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
   print: '<path d="M7 9V3.5h10V9"/><rect x="4" y="9" width="16" height="7" rx="1.5"/><path d="M7 14h10v6.5H7z"/>'
 };
 const ico = (k, cls) => `<svg viewBox="0 0 24 24" class="${cls || ''}" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k] || ''}</svg>`;
@@ -642,6 +643,7 @@ function viewDashboard() {
   shell(appName(), `
     ${sinEmp ? '<div class="errbox">Su usuario no tiene empresa / área asignada. Pida al administrador que se la asigne para ver sus extintores.</div>' : ''}
     ${S.queue.filter(o => o.error).length ? '<div class="errbox">Hay registros que no se pudieron sincronizar. <a href="#/pendientes">Revisar</a></div>' : ''}
+    ${(() => { const l = vencenPronto(); if (!l.length) return ''; const hoyN = l.filter(x => x.d === 0).length; return `<div class="card" style="border-color:var(--bad);background:var(--bad-soft)"><h2 style="color:var(--bad)">${ico('bell')} Vencen ${hoyN ? hoyN + ' hoy' : ''}${hoyN && l.length - hoyN ? ' y ' : ''}${l.length - hoyN ? (l.length - hoyN) + ' mañana' : ''}</h2><div class="list" style="margin:0 -16px">${l.slice(0, 15).map(x => `<div class="it s-${x.d === 0 ? 'v' : 'p'}" onclick="go('#/ext/${x.e.id}')" style="padding-left:18px"><div class="grow"><b class="code">${esc(x.e.codigo)}</b> <span class="sub">${esc(empName(x.e.empresa_id))}</span><div class="sub">${esc(x.k)}</div></div><span class="badge ${x.d === 0 ? 'b-v' : 'b-p'}">${x.d === 0 ? 'Hoy' : 'Mañana'}</span></div>`).join('')}</div></div>`; })()}
     <p class="sub" style="margin:0 0 12px">${esc(me().nombre)} · ${esc(me().rol)}${me().empresa_id ? ' · ' + esc(empName(me().empresa_id)) : ''}<br>Actualizado ${S.lastSync ? new Date(S.lastSync).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' }) : '—'}</p>
     <div class="card gauge-card">
       <h2 style="margin:0">Inspección mensual <span class="hint">${esc(mesTxt)}</span></h2>
@@ -685,6 +687,7 @@ function viewDashboard() {
     </div>
   `, { tab: 'inicio' });
   animateGauge();
+  revisarVencimientos();
 }
 
 function filt(q, emp, sem, est) { S.filters = { q: q, emp: emp, sem: sem, est: est }; go('#/extintores'); }
@@ -1299,7 +1302,7 @@ async function dropOp(id) {
 
 function viewAjustes() {
   const c = S.data.config || {};
-  const keys = ['NOMBRE_SISTEMA', 'ORGANIZACION', 'DIAS_INSPECCION', 'MESES_MANTENIMIENTO', 'MESES_RECARGA', 'DIAS_AVISO', 'DIAS_AVISO_PH', 'CORREOS_ALERTA', 'ALERTA_NO_APTO'];
+  const keys = ['NOMBRE_SISTEMA', 'ORGANIZACION', 'DIAS_INSPECCION', 'MESES_MANTENIMIENTO', 'MESES_RECARGA', 'DIAS_AVISO', 'DIAS_AVISO_PH', 'CORREOS_ALERTA', 'ALERTA_NO_APTO', 'AVISO_CONTRATISTAS'];
   const ph = Object.keys(c).filter(k => k.indexOf('PH_ANOS_') === 0);
   shell('Más', `
     <div class="card">
@@ -1318,6 +1321,16 @@ function viewAjustes() {
       <div class="chips" style="margin:0">${[['auto','Automático'],['light','Claro'],['dark','Oscuro']].map(x => `<span class="chip ${getTheme() === x[0] ? 'on' : ''}" onclick="setTheme('${x[0]}');viewAjustes()">${x[1]}</span>`).join('')}</div>
       <p class="sub" style="margin-bottom:0">Automático sigue el modo del celular. El oscuro descansa la vista en interior mina.</p>
     </div>
+    <div class="card"><h2>Avisos con sonido <span class="hint">en este celular</span></h2>
+      <p class="sub" style="margin-top:-4px">Suena una alarma y aparece una notificación cuando un extintor suyo vence <b>hoy o mañana</b> (inspección, mantenimiento, recarga o prueba hidrostática). Avisa una vez al día al abrir la app, y cada 30 minutos mientras esté abierta.</p>
+      <div class="chips" style="margin:6px 0 10px">${[['1','Activado'],['0','Desactivado']].map(x => `<span class="chip ${soundOn() === (x[0] === '1') ? 'on' : ''}" onclick="setSound('${x[0]}')">${x[1]}</span>`).join('')}</div>
+      <div class="row wrap">
+        <button class="btn sec sm" onclick="alarmaVenc(true)">${ico('bell')} Probar sonido</button>
+        ${'Notification' in window ? (Notification.permission === 'granted' ? '<span class="badge b-ok">Notificaciones permitidas</span>' : `<button class="btn sec sm" onclick="pedirNotif()">Permitir notificaciones</button>`) : '<span class="sub">Este navegador no permite notificaciones.</span>'}
+      </div>
+      <p class="sub" style="margin-bottom:0">Con la app cerrada no puede sonar: para eso están los correos automáticos del aviso diario.</p>
+    </div>
+    ${isAdmin() ? `<div class="card" id="mail-card"><h2>Correos automáticos</h2><div class="sub">Consultando estado…</div></div>` : ''}
     <div class="card list" style="padding:4px 10px">
       <div class="it" onclick="S.filters={q:'',emp:'',sem:'',est:''};xlsListado()"><div class="grow">Listado general de extintores (Excel)</div>${ico('down')}</div>
       <div class="it" onclick="xlsImportar()"><div class="grow">Carga masiva desde Excel</div>${ico('up')}</div>
@@ -1330,7 +1343,97 @@ function viewAjustes() {
     <button class="btn sec block" onclick="logout()">Cerrar sesión</button>
     <p class="sub" style="text-align:center;margin-top:14px">${esc(appName())} v${APP_VERSION} · servidor v${esc(S.data.version || '')}</p>
   `, { tab: 'aj' });
+  if (isAdmin()) cargarCorreos();
 }
+
+/* ---------- Correos automáticos (administrador) ---------- */
+async function cargarCorreos(r) {
+  const el = $('#mail-card'); if (!el) return;
+  try { r = r || await onlineOp('correos.estado', {}); }
+  catch (e) { el.innerHTML = '<h2>Correos automáticos</h2><div class="sub">' + (e.offline ? 'Necesita señal para ver o cambiar esta opción.' : esc(e.message)) + '</div>'; return; }
+  el.innerHTML = `<h2>Correos automáticos <span class="badge ${r.activo ? 'b-ok' : 'b-g'}" style="margin-left:auto">${r.activo ? 'Activados' : 'Desactivados'}</span></h2>
+    <table style="font-size:14px;margin-bottom:10px">
+      <tr><td><b>Aviso diario</b> · 6:00</td><td class="sub">Lo que vence hoy o mañana</td></tr>
+      <tr><td><b>Resumen semanal</b> · lunes 7:00</td><td class="sub">Todo lo vencido o por vencer</td></tr>
+      <tr><td><b>Reporte mensual</b> · día 1, 7:00</td><td class="sub">Cumplimiento de inspecciones por empresa</td></tr>
+      <tr><td><b>No Apto</b> · al momento</td><td class="sub">Cuando una inspección sale No Apto</td></tr>
+    </table>
+    <div class="sub" style="margin-bottom:10px">Destinatarios: ${r.correos ? '<b>' + esc(r.correos) + '</b>' : '<span style="color:var(--bad)">ninguno — escríbalos en Parámetros › correos alerta</span>'}${cfg('AVISO_CONTRATISTAS') !== 'NO' ? ' · el aviso diario también llega a los usuarios de cada empresa / área' : ''}${r.cuota != null ? ' · cupo de hoy: ' + r.cuota + ' correos' : ''}</div>
+    <div class="row wrap">
+      <button class="btn ${r.activo ? 'danger' : ''} sm" onclick="setCorreos(${!r.activo})">${r.activo ? 'Desactivar' : 'Activar correos automáticos'}</button>
+      <button class="btn sec sm" onclick="pruebaCorreo()">Enviar correo de prueba</button>
+    </div>`;
+}
+async function setCorreos(on) {
+  if (on && !cfg('CORREOS_ALERTA')) toast('Recuerde escribir los correos en Parámetros › correos alerta.', 4000);
+  try { const r = await onlineOp('correos.set', { activo: on }); toast(on ? 'Correos automáticos activados.' : 'Correos automáticos desactivados.'); cargarCorreos(r); }
+  catch (e) { toast(e.offline ? 'Necesita señal.' : e.message, 4500); }
+}
+async function pruebaCorreo() {
+  try { const r = await onlineOp('correos.prueba', {}); toast('Correo de prueba enviado a ' + r.enviado, 4000); }
+  catch (e) { toast(e.offline ? 'Necesita señal.' : e.message, 4500); }
+}
+
+/* ---------- Avisos con sonido: vence hoy / mañana ---------- */
+function soundOn() { try { return localStorage.getItem('emf-sound') !== '0'; } catch (e) { return true; } }
+function setSound(v) { try { localStorage.setItem('emf-sound', v); } catch (e) {} if (v === '1') alarmaVenc(true); viewAjustes(); }
+function vencenPronto() {
+  if (!S.data) return [];
+  const t = today(), di = Number(cfg('DIAS_INSPECCION') || 30), out = [];
+  activos().forEach(e => {
+    const f = [];
+    if (e.ult_inspeccion) { const d = new Date(e.ult_inspeccion + 'T12:00:00'); d.setDate(d.getDate() + di); f.push(['Inspección mensual', d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())]); }
+    f.push(['Mantenimiento', e.prox_mantenimiento], ['Recarga', e.prox_recarga], ['Prueba hidrostática', e.prox_ph]);
+    f.forEach(x => { if (!x[1]) return; const d = daysBetween(t, String(x[1]).slice(0, 10)); if (d === 0 || d === 1) out.push({ e: e, k: x[0], d: d }); });
+  });
+  return out.sort((a, b) => a.d - b.d);
+}
+let AUDIO = null;
+function beep() {
+  try {
+    AUDIO = AUDIO || new (window.AudioContext || window.webkitAudioContext)();
+    if (AUDIO.state === 'suspended') { AUDIO.resume(); if (AUDIO.state === 'suspended') return false; }
+    const t0 = AUDIO.currentTime;
+    for (let i = 0; i < 3; i++) [880, 660].forEach((f, j) => {
+      const o = AUDIO.createOscillator(), g = AUDIO.createGain(), st = t0 + i * 0.7 + j * 0.25;
+      o.type = 'square'; o.frequency.value = f; o.connect(g); g.connect(AUDIO.destination);
+      g.gain.setValueAtTime(0.0001, st); g.gain.exponentialRampToValueAtTime(0.25, st + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, st + 0.22);
+      o.start(st); o.stop(st + 0.24);
+    });
+    return true;
+  } catch (e) { return false; }
+}
+function alarmaVenc(prueba) {
+  const l = prueba ? [] : vencenPronto();
+  if (!prueba && (!l.length || !soundOn())) return;
+  const hoyN = l.filter(x => x.d === 0).length, manN = l.length - hoyN;
+  const txt = prueba ? 'Así suena el aviso de vencimiento.' : (hoyN ? hoyN + ' vencen hoy' : '') + (hoyN && manN ? ' · ' : '') + (manN ? manN + ' vencen mañana' : '');
+  if (!beep()) {   // el navegador exige un toque antes de sonar
+    const once = () => { beep(); document.removeEventListener('pointerdown', once, true); };
+    document.addEventListener('pointerdown', once, true);
+  }
+  try { navigator.vibrate && navigator.vibrate([400, 150, 400, 150, 400]); } catch (e) {}
+  if (!prueba && 'Notification' in window && Notification.permission === 'granted' && navigator.serviceWorker) {
+    navigator.serviceWorker.ready.then(r => r.showNotification(appName() + ': extintores por vencer', {
+      body: txt + '\n' + l.slice(0, 4).map(x => x.e.codigo + ' · ' + x.k).join('\n'), icon: 'icon.svg', badge: 'icon.svg',
+      tag: 'venc-' + today(), renotify: false, vibrate: [400, 150, 400], requireInteraction: true, data: { url: './#/inicio' } })).catch(() => {});
+  }
+  toast((prueba ? '' : '⚠ ') + txt, 5000);
+}
+function revisarVencimientos() {
+  if (!S.data || !soundOn()) return;
+  const k = 'emf-alarm-' + today();
+  let ya = false; try { ya = localStorage.getItem(k) === '1'; } catch (e) {}
+  if (ya || !vencenPronto().length) return;
+  try { localStorage.setItem(k, '1'); } catch (e) {}
+  alarmaVenc(false);
+}
+setInterval(revisarVencimientos, 30 * 60 * 1000);
+async function pedirNotif() {
+  try { const r = await Notification.requestPermission(); toast(r === 'granted' ? 'Notificaciones permitidas.' : 'No se permitieron las notificaciones.'); } catch (e) {}
+  viewAjustes();
+}
+
 async function saveCfg(ev) {
   ev.preventDefault(); const fd = new FormData(ev.target), p = {}; fd.forEach((v, k) => p[k] = String(v).trim());
   try { await onlineOp('config.save', p); toast('Parámetros guardados.'); }
