@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0B1724">
-<title>EmerMine Fire</title>
+<title>SIGEX PASH</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
@@ -216,7 +216,7 @@ input[type=checkbox]{width:auto;min-height:auto;accent-color:var(--accent)}
    CONFIGURACIÓN — pegue aquí la URL de su aplicación web de Apps Script
    ====================================================================== */
 const API_URL = 'https://script.google.com/macros/s/AKfycbyJPOA1PYAGsdeN_OnugP_T6C1KESrnu-7lACU8Mtrv5_nTEOEzVAxuplcb-MaTVFmU/exec';   // termina en /exec
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.1.1';
 
 const CHECK_LABELS = {
   ubicado: 'Ubicado', acceso: 'Acceso obstruido', numerado: 'Zona y/o extintor no numerados',
@@ -312,6 +312,7 @@ function addMonths(dateStr, months) {
 }
 function toast(msg, ms) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), ms || 2600); }
 const cfg = k => (S.data && S.data.config && S.data.config[k]) || '';
+const appName = () => cfg('NOMBRE_SISTEMA') || (function () { try { return localStorage.getItem('emf-name'); } catch (e) { return ''; } })() || 'SIGEX PASH';
 const me = () => (S.data && S.data.user) || {};
 const isAdmin = () => me().rol === 'Administrador';
 const seesAll = () => me().rol === 'Administrador' || me().rol === 'Supervisor';
@@ -520,7 +521,7 @@ function viewLogin() {
   <div class="login">
     <div class="row" style="justify-content:flex-end;margin-bottom:10px"><button class="iconbtn" style="color:var(--ink);border-color:var(--line2)" id="theme-btn" onclick="cycleTheme()" aria-label="Cambiar tema">${ico(t === 'light' ? 'sun' : t === 'dark' ? 'moon' : 'auto')}</button></div>
     ${window.LOGO_PAS ? `<div class="brand">${logoImg(56)}</div>` : ''}
-    <h2><span class="ext-mark">${ico('ext')}</span>EmerMine Fire</h2>
+    <h2><span class="ext-mark">${ico('ext')}</span>${esc(appName())}</h2>
     <p class="lead">Control de extintores · U.M. Huarón</p>
     <div class="card">
       <form onsubmit="doLogin(event)">
@@ -636,7 +637,9 @@ function viewDashboard() {
   const alertas = st.filter(x => x.s.worst !== 'ok').sort((a, b) => (a.s.worst === 'v' ? 0 : 1) - (b.s.worst === 'v' ? 0 : 1)).slice(0, 25);
   const mesTxt = new Date().toLocaleString('es-PE', { month: 'long', year: 'numeric' });
 
-  shell(cfg('NOMBRE_SISTEMA') || 'EmerMine Fire', `
+  try { localStorage.setItem('emf-name', appName()); } catch (e) {}
+  document.title = appName();
+  shell(appName(), `
     ${sinEmp ? '<div class="errbox">Su usuario no tiene empresa / área asignada. Pida al administrador que se la asigne para ver sus extintores.</div>' : ''}
     ${S.queue.filter(o => o.error).length ? '<div class="errbox">Hay registros que no se pudieron sincronizar. <a href="#/pendientes">Revisar</a></div>' : ''}
     <p class="sub" style="margin:0 0 12px">${esc(me().nombre)} · ${esc(me().rol)}${me().empresa_id ? ' · ' + esc(empName(me().empresa_id)) : ''}<br>Actualizado ${S.lastSync ? new Date(S.lastSync).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' }) : '—'}</p>
@@ -1224,7 +1227,7 @@ async function delUser(id) {
 
 function showTempPass(email, nombre, pass) {
   const url = location.href.split('#')[0];
-  const msg = `Hola ${nombre || ''}, tu acceso a EmerMine Fire:\nApp: ${url}\nUsuario: ${email}\nContraseña temporal: ${pass}\nAl ingresar te pedirá crear tu propia contraseña.`;
+  const msg = `Hola ${nombre || ''}, tu acceso a ${appName()}:\nApp: ${url}\nUsuario: ${email}\nContraseña temporal: ${pass}\nAl ingresar te pedirá crear tu propia contraseña.`;
   modal(`<h3>Contraseña temporal</h3>
     <p>Usuario: <b>${esc(email)}</b></p>
     <p style="font-size:26px;font-weight:700;letter-spacing:2px;text-align:center;background:var(--surface2);padding:12px;border-radius:10px">${esc(pass)}</p>
@@ -1296,7 +1299,7 @@ async function dropOp(id) {
 
 function viewAjustes() {
   const c = S.data.config || {};
-  const keys = ['DIAS_INSPECCION', 'MESES_MANTENIMIENTO', 'MESES_RECARGA', 'DIAS_AVISO', 'DIAS_AVISO_PH', 'CORREOS_ALERTA', 'ALERTA_NO_APTO', 'ORGANIZACION'];
+  const keys = ['NOMBRE_SISTEMA', 'ORGANIZACION', 'DIAS_INSPECCION', 'MESES_MANTENIMIENTO', 'MESES_RECARGA', 'DIAS_AVISO', 'DIAS_AVISO_PH', 'CORREOS_ALERTA', 'ALERTA_NO_APTO'];
   const ph = Object.keys(c).filter(k => k.indexOf('PH_ANOS_') === 0);
   shell('Más', `
     <div class="card">
@@ -1325,7 +1328,7 @@ function viewAjustes() {
       <p class="sub">Valores por defecto de prueba hidrostática: verifíquelos con la NTP 350.043-1 y su procedimiento interno.</p>
       <button class="btn block">Guardar parámetros</button></form>` : ''}
     <button class="btn sec block" onclick="logout()">Cerrar sesión</button>
-    <p class="sub" style="text-align:center;margin-top:14px">EmerMine Fire v${APP_VERSION} · servidor v${esc(S.data.version || '')}</p>
+    <p class="sub" style="text-align:center;margin-top:14px">${esc(appName())} v${APP_VERSION} · servidor v${esc(S.data.version || '')}</p>
   `, { tab: 'aj' });
 }
 async function saveCfg(ev) {
@@ -1372,7 +1375,7 @@ function buildFormato(wb, title, subtitle, rows, opts) {
     pageSetup: { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: '3:5',
       margins: { left: 0.3, right: 0.3, top: 0.4, bottom: 0.4, header: 0.2, footer: 0.2 } },
     views: [{ state: 'frozen', xSplit: 0, ySplit: 5 }],
-    headerFooter: { oddFooter: '&L&8EmerMine Fire&R&8Página &P de &N' }
+    headerFooter: { oddFooter: '&L&8' + appName() + '&R&8Página &P de &N' }
   });
   FMT_COLS.forEach((c, i) => { ws.getColumn(i + 1).width = c[1]; });
   for (let c = 11; c <= 26; c++) ws.getColumn(c).width = 5.7;
@@ -1452,7 +1455,7 @@ async function xlsListado() {
   if (f.est && f.est !== '*') partes.push(f.est);
   if (f.q) partes.push('búsqueda "' + f.q + '"');
   const sub = (cfg('ORGANIZACION') || 'U.M. Huarón') + ' · ' + (partes.length ? partes.join(' · ') : 'Todas las áreas y contratistas') + ' · ' + l.length + ' extintores · Generado el ' + fdate(today()) + ' ' + nowTime() + ' por ' + (me().nombre || me().email) + ' · Anomalías según la última inspección: ü conforme, û anomalía';
-  const wb = new ExcelJS.Workbook(); wb.creator = 'EmerMine Fire'; wb.created = new Date();
+  const wb = new ExcelJS.Workbook(); wb.creator = appName(); wb.created = new Date();
   buildFormato(wb, 'LISTADO GENERAL DE EXTINTORES', sub, rows, { extraCol: true });
   const buf = await wb.xlsx.writeBuffer();
   saveBlob(buf, 'Listado_extintores_' + today() + '.xlsx');
@@ -1463,7 +1466,7 @@ async function xlsListado() {
 async function xlsPlantilla() {
   toast('Preparando plantilla…');
   try { await loadExcel(); } catch (e) { return toast(e.message, 4000); }
-  const wb = new ExcelJS.Workbook(); wb.creator = 'EmerMine Fire';
+  const wb = new ExcelJS.Workbook(); wb.creator = appName();
   const N = 300, blank = []; for (let i = 0; i < N; i++) blank.push([i + 1]);
   const emp = seesAll() ? (S.data.empresas || []).filter(x => x.activo !== 'NO').map(x => x.nombre).sort((a, b) => a.localeCompare(b)) : [empName(me().empresa_id)];
   const ws = buildFormato(wb, 'REGISTRO DE EXTINTORES — CARGA MASIVA', 'Llene una fila por extintor desde la fila 6. Obligatorio: Nº EXTINTOR. Fechas en formato dd/mm/aaaa. Las columnas de anomalías (K–AA) no se cargan.', blank);

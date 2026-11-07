@@ -1,5 +1,5 @@
-/* EmerMine Fire — Service Worker: permite abrir la app sin señal. */
-const CACHE = 'emermine-v1.1.0';
+/* SIGEX PASH — Service Worker: permite abrir la app sin señal. */
+const CACHE = 'emermine-v1.1.1';
 const SHELL = ['./', 'index.html', 'manifest.json', 'icon.svg', 'logo.js',
   'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js'];
