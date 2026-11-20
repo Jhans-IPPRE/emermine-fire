@@ -216,7 +216,7 @@ input[type=checkbox]{width:auto;min-height:auto;accent-color:var(--accent)}
    CONFIGURACIÓN — pegue aquí la URL de su aplicación web de Apps Script
    ====================================================================== */
 const API_URL = 'https://script.google.com/macros/s/AKfycbyJPOA1PYAGsdeN_OnugP_T6C1KESrnu-7lACU8Mtrv5_nTEOEzVAxuplcb-MaTVFmU/exec';   // termina en /exec
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.3.0';
 
 const CHECK_LABELS = {
   ubicado: 'Ubicado', acceso: 'Acceso obstruido', numerado: 'Zona y/o extintor no numerados',
@@ -674,7 +674,7 @@ function viewDashboard() {
         <tr><td>Inspecciones No Apto (últimos 30 días)</td><td class="tright"><span class="badge ${noApt ? 'b-v' : 'b-ok'} num">${noApt}</span></td></tr>
       </table>
     </div>
-    ${seesAll() ? `<div class="card"><h2>Cumplimiento por empresa / área <span class="hint">mes actual</span></h2>
+    ${seesAll() ? `<div class="card"><h2>Cumplimiento por empresa / área <span class="hint">mes actual</span><button class="btn sm" style="margin-left:auto" onclick="viewReporteModal()">${ico('print')} Reporte</button></h2>
       <div style="overflow-x:auto"><table><tr><th>Empresa / Área</th><th class="tright">Ext.</th><th style="min-width:110px">Inspección</th><th class="tright">Venc.</th></tr>
       ${empRows.map(r => { const pc = Math.round(100 * r.ins / r.n); return `<tr onclick="filt('','${esc(r.k)}','','')" style="cursor:pointer"><td>${esc(r.name)}</td><td class="tright num">${r.n}</td><td><div class="row" style="gap:6px"><div class="minibar grow"><i style="width:${pc}%;background:${pc >= 90 ? 'var(--ok)' : pc >= 60 ? 'var(--warn)' : 'var(--bad)'}"></i></div><span class="num" style="font-size:13px;min-width:34px;text-align:right">${pc}%</span></div></td><td class="tright">${r.v ? `<span class="badge b-v num">${r.v}</span>` : '<span class="num muted">0</span>'}</td></tr>`; }).join('')}
       </table></div></div>` : ''}
@@ -1108,6 +1108,255 @@ function printActa(id) {
   w.document.close();
 }
 
+/* ============================ Reporte de gestión (administrador / supervisor) ============================ */
+const MESES_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const mesTexto = m => MESES_ES[+m.slice(5, 7) - 1] + ' ' + m.slice(0, 4);
+
+/** Calcula indicadores por empresa / área. mes = 'AAAA-MM' (inspección mensual); vencimientos a la fecha de hoy. */
+function reporteData(mes) {
+  const t = today(), ext = activos();
+  const empAct = (S.data.empresas || []).filter(e => e.activo !== 'NO');
+  const insMes = (S.data.inspecciones || []).filter(i => String(i.fecha).slice(0, 7) === mes);
+  const inspSet = new Set(insMes.map(i => i.extintor_id));
+  const users = S.data.usuarios || [];
+  const known = new Set(empAct.map(e => e.id));
+  const emps = empAct.map(e => ({ id: e.id, nombre: e.nombre }));
+  if (ext.some(e => !known.has(e.empresa_id))) {
+    const otros = [...new Set(ext.filter(e => !known.has(e.empresa_id)).map(e => e.empresa_id))];
+    otros.forEach(id => emps.push({ id: id, nombre: id ? empName(id) : 'Sin empresa asignada' }));
+  }
+  const det = [];
+  const rows = emps.map(em => {
+    const l = ext.filter(e => (e.empresa_id || '') === (em.id || ''));
+    const r = { id: em.id, nombre: em.nombre, total: l.length, ins: 0, faltan: 0, pct: null,
+      usuarios: users.filter(u => u.empresa_id === em.id && u.estado !== 'Inactivo').length,
+      mantV: 0, mantP: 0, recV: 0, recP: 0, phV: 0, phP: 0, sinFecha: 0, fuera: 0,
+      noApto: insMes.filter(i => i.empresa_id === em.id && i.resultado === 'No Apto').length };
+    l.forEach(e => {
+      const s = status(e), it = k => s.items.find(i => i.k === k) || {};
+      const pend = [];
+      if (inspSet.has(e.id)) r.ins++; else pend.push('Inspección del mes');
+      [['Mantenimiento', 'mant'], ['Recarga', 'rec'], ['Prueba hidrostática', 'ph']].forEach(([k, p]) => {
+        const x = it(k);
+        const fem = k !== 'Mantenimiento';
+        if (x.s === 'v') { r[p + 'V']++; pend.push(k + (fem ? ' vencida' : ' vencido')); }
+        else if (x.s === 'p') { r[p + 'P']++; pend.push(k + ' por vencer'); }
+      });
+      if (s.items.some(i => i.s === 'n')) { r.sinFecha++; pend.push('Fechas sin registrar'); }
+      if (e.estado === 'Fuera de Servicio' || e.estado === 'En Mantenimiento') r.fuera++;
+      if (pend.length) det.push({ empresa: em.nombre, codigo: e.codigo, ubicacion: [e.ubicacion, e.nivel].filter(Boolean).join(' · '),
+        estado: e.estado, ultIns: e.ult_inspeccion || '', proxMant: e.prox_mantenimiento || '', proxRec: e.prox_recarga || '', proxPh: e.prox_ph || '', pend: pend.join(' · ') });
+    });
+    r.faltan = r.total - r.ins;
+    r.pct = r.total ? Math.round(100 * r.ins / r.total) : null;
+    return r;
+  }).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  const sum = k => rows.reduce((a, r) => a + r[k], 0);
+  const tot = { empresas: empAct.length, sinCarga: rows.filter(r => !r.total && known.has(r.id)).length, total: ext.length, ins: sum('ins'), faltan: sum('faltan'),
+    mantV: sum('mantV'), mantP: sum('mantP'), recV: sum('recV'), recP: sum('recP'), phV: sum('phV'), phP: sum('phP'), sinFecha: sum('sinFecha'),
+    noApto: insMes.filter(i => i.resultado === 'No Apto').length, inspecciones: insMes.length, fuera: sum('fuera') };
+  tot.pct = tot.total ? Math.round(100 * tot.ins / tot.total) : 0;
+  const empIns = rows.filter(r => r.total && r.pct === 100).length, empConExt = rows.filter(r => r.total).length;
+  tot.empCumplen = empIns; tot.empConExt = empConExt;
+  // vencimientos por tipo (para el gráfico)
+  const porTipo = ['Inspección', 'Mantenimiento', 'Recarga', 'Prueba hidrostática'].map(k => {
+    const o = { k: k, v: 0, p: 0, ok: 0, n: 0 };
+    ext.forEach(e => { const x = status(e).items.find(i => i.k === k); if (x) o[x.s === 'ok' ? 'ok' : x.s]++; });
+    return o;
+  });
+  det.sort((a, b) => a.empresa.localeCompare(b.empresa) || String(a.codigo).localeCompare(String(b.codigo)));
+  return { mes: mes, hoy: t, rows: rows, tot: tot, det: det, porTipo: porTipo,
+    sinCarga: rows.filter(r => !r.total && known.has(r.id)),
+    pendIns: rows.filter(r => r.total && r.faltan).sort((a, b) => a.pct - b.pct || b.faltan - a.faltan),
+    pendServ: rows.filter(r => r.mantV + r.mantP + r.recV + r.recP + r.phV + r.phP + r.sinFecha > 0).sort((a, b) => (b.mantV + b.recV + b.phV) - (a.mantV + a.recV + a.phV) || a.nombre.localeCompare(b.nombre)) };
+}
+
+function viewReporteModal() {
+  const m = today().slice(0, 7);
+  modal(`<h3>Reporte de gestión</h3>
+    <p class="sub" style="margin-top:0">Indicadores de cumplimiento por empresa / área: quién falta cargar sus extintores, inspecciones pendientes del mes y mantenimiento, recarga y prueba hidrostática vencidos o por vencer.</p>
+    <label style="margin-top:0">Mes de la inspección mensual</label>
+    <input type="month" id="rp-mes" value="${m}" max="${m}">
+    <p class="sub">Los vencimientos se calculan a la fecha de hoy (${fdate(today())}).</p>
+    <div class="row wrap" style="gap:10px;margin-top:6px">
+      <button class="btn grow" onclick="reportePdf()">${ico('print')} Ver e imprimir (PDF)</button>
+      <button class="btn sec grow" onclick="reporteXls()">${ico('xls')} Descargar Excel</button>
+    </div>
+    <button class="btn ghost block" style="margin-top:8px" onclick="closeModal()">Cerrar</button>`);
+}
+const rpMes = () => { const v = ($('#rp-mes') || {}).value; return /^\d{4}-\d{2}$/.test(v || '') ? v : today().slice(0, 7); };
+
+function reportePdf() {
+  const D = reporteData(rpMes()), T = D.tot;
+  const w = window.open('', '_blank');
+  if (!w) return toast('Permita ventanas emergentes para generar el reporte.');
+  const pctCol = p => p >= 90 ? '#11855A' : p >= 60 ? '#B26B00' : '#CC3527';
+  const kpi = (n, l, c, sub) => `<div class="kpi"><div class="n" style="color:${c || '#0F2233'}">${n}</div><div class="l">${l}</div>${sub ? `<div class="s">${sub}</div>` : ''}</div>`;
+  const barras = D.rows.filter(r => r.total).sort((a, b) => a.pct - b.pct || a.nombre.localeCompare(b.nombre));
+  const maxT = Math.max(1, ...D.porTipo.map(x => x.v + x.p + x.ok + x.n));
+  const tipo = D.porTipo.map(x => {
+    const seg = (n, c, lab) => n ? `<i style="width:${(100 * n / maxT).toFixed(2)}%;background:${c}" title="${lab}: ${n}">${n >= 3 ? n : ''}</i>` : '';
+    return `<tr><td class="tl">${x.k}</td><td><div class="stack">${seg(x.v, '#CC3527', 'Vencido')}${seg(x.p, '#E0A030', 'Por vencer')}${seg(x.ok, '#11855A', 'Vigente')}${seg(x.n, '#A9B6C2', 'Sin fecha')}</div></td></tr>`;
+  }).join('');
+  const zero = '<span class="z">0</span>', n0 = v => v ? `<b class="bad">${v}</b>` : zero, w0 = v => v ? `<b class="warn">${v}</b>` : zero;
+  w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Reporte de gestión de extintores — ${mesTexto(D.mes)}</title>
+  <style>
+  @page{size:A4;margin:14mm 12mm}
+  *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font:11px/1.4 Arial,Helvetica,sans-serif;color:#0F2233;margin:0;padding:18px;max-width:900px;margin:auto}
+  .hd{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:3px solid #1675AE;padding-bottom:10px}
+  .hd h1{font-size:18px;margin:0}.hd .o{color:#587084;margin-top:2px}.hd .r{text-align:right;color:#587084}
+  h2{font-size:13px;margin:22px 0 8px;padding-left:8px;border-left:4px solid #1675AE}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+  .kpi{border:1px solid #D2DDE6;border-radius:8px;padding:9px 10px;background:#F5F8FB}
+  .kpi .n{font-size:22px;font-weight:700;line-height:1.1}.kpi .l{font-weight:700;margin-top:2px}.kpi .s{color:#587084;font-size:10px}
+  table{width:100%;border-collapse:collapse}th,td{border:1px solid #D2DDE6;padding:5px 6px;text-align:left;vertical-align:middle}
+  th{background:#0F2233;color:#fff;font-weight:700;font-size:10.5px}tr:nth-child(even) td{background:#F7F9FB}
+  td.c,th.c{text-align:center}.z{color:#9AA8B5}.bad{color:#CC3527}.warn{color:#B26B00}
+  .bar{display:flex;align-items:center;gap:8px}.bar .t{flex:1;height:12px;background:#E3EAF0;border-radius:6px;overflow:hidden}.bar .t i{display:block;height:100%}
+  .bar b{width:38px;text-align:right}
+  .stack{display:flex;height:18px;border-radius:4px;overflow:hidden;background:#EEF2F6}.stack i{display:flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-size:9.5px;font-weight:700}
+  .tl{width:150px;font-weight:700}.leg{display:flex;gap:14px;margin:6px 0 0;color:#587084}.leg span{display:inline-flex;align-items:center;gap:5px}.leg i{width:10px;height:10px;border-radius:2px;display:inline-block}
+  .ok{color:#11855A}.note{color:#587084;font-size:10px;margin-top:6px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .avoid{break-inside:avoid}.pb{break-before:page}
+  .tools{position:sticky;top:0;background:#fff;padding:8px 0;margin-bottom:6px;display:flex;gap:8px}
+  .tools button{font:600 13px Arial;padding:8px 14px;border-radius:8px;border:1px solid #1675AE;background:#1675AE;color:#fff;cursor:pointer}
+  @media print{.tools{display:none}body{padding:0}}
+  </style></head><body>
+  <div class="tools"><button onclick="print()">Imprimir / Guardar PDF</button></div>
+  <div class="hd"><div style="display:flex;gap:14px;align-items:center">${window.LOGO_PAS ? `<img src="${window.LOGO_PAS}" style="height:46px">` : ''}<div><h1>Reporte de gestión de extintores</h1><div class="o">${esc(cfg('ORGANIZACION') || '')}</div></div></div>
+  <div class="r"><b style="color:#0F2233;font-size:13px">Inspección: ${mesTexto(D.mes)}</b><br>Vencimientos al ${fdate(D.hoy)}<br>Generado por ${esc(me().nombre || me().email)}</div></div>
+
+  <div class="kpis">
+    ${kpi(T.empresas, 'Empresas / áreas', '#0F2233', T.empConExt + ' con extintores cargados')}
+    ${kpi(T.sinCarga, 'Faltan cargar extintores', T.sinCarga ? '#CC3527' : '#11855A', 'Empresas sin ningún extintor')}
+    ${kpi(T.total, 'Extintores activos', '#0F2233', T.fuera ? T.fuera + ' fuera de servicio o en mantenimiento' : 'Registrados en el sistema')}
+    ${kpi(T.pct + '%', 'Inspección del mes', pctCol(T.pct), T.ins + ' de ' + T.total + ' · faltan ' + T.faltan)}
+    ${kpi(T.empCumplen + ' / ' + T.empConExt, 'Empresas al 100 %', '#0F2233', 'Inspección mensual completa')}
+    ${kpi(T.mantV, 'Mantenimiento vencido', T.mantV ? '#CC3527' : '#11855A', T.mantP + ' por vencer')}
+    ${kpi(T.recV, 'Recarga vencida', T.recV ? '#CC3527' : '#11855A', T.recP + ' por vencer')}
+    ${kpi(T.phV, 'Prueba hidrostática vencida', T.phV ? '#CC3527' : '#11855A', T.phP + ' por vencer · ' + T.noApto + ' No Apto en el mes')}
+  </div>
+
+  <div class="grid2">
+    <div class="avoid"><h2>Avance de la inspección mensual por empresa</h2>
+      ${barras.length ? barras.map(r => `<div class="bar" style="margin:4px 0"><span style="width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.nombre)}</span><div class="t"><i style="width:${r.pct}%;background:${pctCol(r.pct)}"></i></div><b style="color:${pctCol(r.pct)}">${r.pct}%</b></div>`).join('') : '<p class="note">Aún no hay extintores cargados.</p>'}
+      <div class="leg"><span><i style="background:#11855A"></i>90–100 %</span><span><i style="background:#B26B00"></i>60–89 %</span><span><i style="background:#CC3527"></i>menos de 60 %</span></div>
+    </div>
+    <div class="avoid"><h2>Estado de los controles (todos los extintores)</h2>
+      <table style="border:0"><tbody>${tipo.replace(/<td/g, '<td style="border:0;padding:4px 4px"')}</tbody></table>
+      <div class="leg"><span><i style="background:#CC3527"></i>Vencido</span><span><i style="background:#E0A030"></i>Por vencer</span><span><i style="background:#11855A"></i>Vigente</span><span><i style="background:#A9B6C2"></i>Sin fecha</span></div>
+      <p class="note">Inspección: vencida si pasaron más de ${cfg('DIAS_INSPECCION') || 30} días desde la última. Mantenimiento y recarga: por vencer ${cfg('DIAS_AVISO') || 30} días antes; prueba hidrostática ${cfg('DIAS_AVISO_PH') || 90} días antes.</p>
+    </div>
+  </div>
+
+  <div class="avoid"><h2>1. Empresas / áreas que faltan cargar sus extintores (${D.sinCarga.length})</h2>
+  ${D.sinCarga.length ? `<table><tr><th style="width:36px" class="c">#</th><th>Empresa / Área</th><th class="c" style="width:150px">Usuarios registrados</th><th>Observación</th></tr>
+  ${D.sinCarga.map((r, i) => `<tr><td class="c">${i + 1}</td><td><b>${esc(r.nombre)}</b></td><td class="c">${r.usuarios}</td><td>${r.usuarios ? 'Tiene usuario: debe cargar sus extintores (carga masiva o uno por uno).' : '<span class="bad">Sin usuario: solicitar el registro de su inspector.</span>'}</td></tr>`).join('')}</table>` : '<p class="ok"><b>Todas las empresas / áreas tienen extintores cargados.</b></p>'}</div>
+
+  <div class="avoid"><h2>2. Inspección mensual pendiente — ${mesTexto(D.mes)} (${D.pendIns.length} empresas)</h2>
+  ${D.pendIns.length ? `<table><tr><th style="width:36px" class="c">#</th><th>Empresa / Área</th><th class="c">Extintores</th><th class="c">Inspeccionados</th><th class="c">Faltan</th><th style="width:170px">Avance</th></tr>
+  ${D.pendIns.map((r, i) => `<tr><td class="c">${i + 1}</td><td><b>${esc(r.nombre)}</b></td><td class="c">${r.total}</td><td class="c">${r.ins}</td><td class="c"><b class="bad">${r.faltan}</b></td><td><div class="bar"><div class="t"><i style="width:${r.pct}%;background:${pctCol(r.pct)}"></i></div><b style="color:${pctCol(r.pct)}">${r.pct}%</b></div></td></tr>`).join('')}
+  <tr><td></td><td><b>Total</b></td><td class="c"><b>${T.total}</b></td><td class="c"><b>${T.ins}</b></td><td class="c"><b class="bad">${T.faltan}</b></td><td><b>${T.pct}%</b></td></tr></table>` : '<p class="ok"><b>Todas las empresas completaron la inspección del mes.</b></p>'}</div>
+
+  <div class="avoid"><h2>3. Mantenimiento, recarga y prueba hidrostática (${D.pendServ.length} empresas con pendientes)</h2>
+  ${D.pendServ.length ? `<table><tr><th rowspan="2" style="width:36px" class="c">#</th><th rowspan="2">Empresa / Área</th><th colspan="2" class="c">Mantenimiento</th><th colspan="2" class="c">Recarga</th><th colspan="2" class="c">Prueba hidrostática</th><th rowspan="2" class="c">Fechas sin registrar</th></tr>
+  <tr><th class="c">Vencido</th><th class="c">Por vencer</th><th class="c">Vencida</th><th class="c">Por vencer</th><th class="c">Vencida</th><th class="c">Por vencer</th></tr>
+  ${D.pendServ.map((r, i) => `<tr><td class="c">${i + 1}</td><td><b>${esc(r.nombre)}</b></td><td class="c">${n0(r.mantV)}</td><td class="c">${w0(r.mantP)}</td><td class="c">${n0(r.recV)}</td><td class="c">${w0(r.recP)}</td><td class="c">${n0(r.phV)}</td><td class="c">${w0(r.phP)}</td><td class="c">${r.sinFecha ? `<b class="warn">${r.sinFecha}</b>` : zero}</td></tr>`).join('')}
+  <tr><td></td><td><b>Total</b></td><td class="c"><b>${T.mantV}</b></td><td class="c"><b>${T.mantP}</b></td><td class="c"><b>${T.recV}</b></td><td class="c"><b>${T.recP}</b></td><td class="c"><b>${T.phV}</b></td><td class="c"><b>${T.phP}</b></td><td class="c"><b>${T.sinFecha}</b></td></tr></table>
+  <p class="note">"Fechas sin registrar": extintores sin fecha de próximo mantenimiento, recarga o prueba hidrostática; complételas en la ficha o con la carga masiva.</p>` : '<p class="ok"><b>No hay servicios vencidos ni por vencer.</b></p>'}</div>
+
+  ${D.det.length ? `<h2 class="pb">Anexo: extintores con pendientes (${D.det.length})</h2>
+  <table><tr><th>Empresa / Área</th><th>Código</th><th>Ubicación</th><th class="c">Últ. inspección</th><th class="c">Próx. mant.</th><th class="c">Próx. recarga</th><th class="c">Próx. PH</th><th>Pendiente</th></tr>
+  ${D.det.map(x => `<tr><td>${esc(x.empresa)}</td><td style="white-space:nowrap"><b>${esc(x.codigo)}</b></td><td>${esc(x.ubicacion)}</td><td class="c">${fdate(x.ultIns)}</td><td class="c">${fdate(x.proxMant)}</td><td class="c">${fdate(x.proxRec)}</td><td class="c">${fdate(x.proxPh)}</td><td>${esc(x.pend)}</td></tr>`).join('')}</table>` : ''}
+  <p class="note" style="margin-top:14px">${esc(appName())} · Reporte generado el ${fdate(D.hoy)} ${nowTime()}.</p>
+  <script>setTimeout(function(){print()},600)<\/script></body></html>`);
+  w.document.close();
+}
+
+async function reporteXls() {
+  const D = reporteData(rpMes()), T = D.tot;
+  toast('Generando Excel…');
+  try { await loadExcel(); } catch (e) { return toast(e.message, 4000); }
+  const wb = new ExcelJS.Workbook(); wb.creator = appName(); wb.created = new Date();
+  const NAVY = 'FF0F2233', HEAD = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
+  const head = (ws, row, cols) => { const r = ws.getRow(row); cols.forEach((c, i) => { const x = r.getCell(i + 1); x.value = c; x.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } }; x.fill = HEAD; x.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true }; x.border = xBorder; }); r.height = 30; };
+  const body = (ws, r0, rows, center) => rows.forEach((vals, i) => { const r = ws.getRow(r0 + i); vals.forEach((v, j) => { const x = r.getCell(j + 1); x.value = v; x.font = { name: 'Arial', size: 10 }; x.border = xBorder; x.alignment = { vertical: 'middle', horizontal: center && center.indexOf(j) >= 0 ? 'center' : 'left', wrapText: true }; }); });
+  const title = (ws, t, sub, lastCol) => {
+    ws.mergeCells(1, 1, 1, lastCol); ws.mergeCells(2, 1, 2, lastCol);
+    const a = ws.getCell(1, 1); a.value = t; a.font = { name: 'Arial', size: 14, bold: true, color: { argb: NAVY } };
+    const b = ws.getCell(2, 1); b.value = sub; b.font = { name: 'Arial', size: 9, color: { argb: 'FF587084' } };
+    ws.getRow(1).height = 24;
+  };
+  const sub = (cfg('ORGANIZACION') || '') + ' · Inspección: ' + mesTexto(D.mes) + ' · Vencimientos al ' + fdate(D.hoy) + ' · Generado por ' + (me().nombre || me().email);
+
+  // 1. Resumen
+  let ws = wb.addWorksheet('Resumen', { views: [{ showGridLines: false }] });
+  ws.columns = [{ width: 42 }, { width: 16 }, { width: 46 }];
+  title(ws, 'Reporte de gestión de extintores', sub, 3);
+  head(ws, 4, ['Indicador', 'Valor', 'Detalle']);
+  body(ws, 5, [
+    ['Empresas / áreas registradas', T.empresas, T.empConExt + ' con extintores cargados'],
+    ['Empresas que faltan cargar extintores', T.sinCarga, 'Ver hoja "Faltan cargar"'],
+    ['Extintores activos', T.total, T.fuera + ' fuera de servicio o en mantenimiento'],
+    ['Inspección del mes (%)', T.pct / 100, T.ins + ' inspeccionados de ' + T.total],
+    ['Extintores que faltan inspeccionar', T.faltan, 'Ver hoja "Por empresa" y "Pendientes"'],
+    ['Empresas con inspección al 100 %', T.empCumplen, 'de ' + T.empConExt + ' con extintores'],
+    ['Inspecciones registradas en el mes', T.inspecciones, T.noApto + ' con resultado No Apto'],
+    ['Mantenimiento vencido', T.mantV, T.mantP + ' por vencer'],
+    ['Recarga vencida', T.recV, T.recP + ' por vencer'],
+    ['Prueba hidrostática vencida', T.phV, T.phP + ' por vencer'],
+    ['Extintores con fechas sin registrar', T.sinFecha, 'Sin próximo mantenimiento, recarga o PH'],
+  ], [1]);
+  ws.getCell('B8').numFmt = '0%';
+  ws.getCell('A5').font = ws.getCell('A5').font;
+
+  // 2. Por empresa
+  ws = wb.addWorksheet('Por empresa', { views: [{ state: 'frozen', ySplit: 4 }] });
+  const cols = ['Empresa / Área', 'Usuarios', 'Extintores', 'Inspeccionados', 'Faltan inspeccionar', '% inspección', 'Mant. vencido', 'Mant. por vencer', 'Recarga vencida', 'Recarga por vencer', 'PH vencida', 'PH por vencer', 'Fechas sin registrar', 'Fuera de servicio', 'No Apto (mes)'];
+  ws.columns = [{ width: 38 }].concat(cols.slice(1).map(() => ({ width: 12 })));
+  title(ws, 'Cumplimiento por empresa / área', sub, cols.length);
+  head(ws, 4, cols);
+  body(ws, 5, D.rows.map(r => [r.nombre, r.usuarios, r.total, r.ins, r.faltan, r.pct == null ? 'Sin extintores' : r.pct / 100, r.mantV, r.mantP, r.recV, r.recP, r.phV, r.phP, r.sinFecha, r.fuera, r.noApto]), cols.map((c, i) => i).slice(1));
+  const last = 4 + D.rows.length;
+  for (let i = 5; i <= last; i++) {
+    const c = ws.getCell(i, 6); if (typeof c.value === 'number') c.numFmt = '0%';
+    if (ws.getCell(i, 3).value === 0) { ws.getRow(i).eachCell(x => { x.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFDECEA' } }; }); }
+    [7, 9, 11].forEach(k => { if (ws.getCell(i, k).value > 0) ws.getCell(i, k).font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFC00000' } }; });
+  }
+  const tr = ws.getRow(last + 1);
+  ['TOTAL', null, T.total, T.ins, T.faltan, T.pct / 100, T.mantV, T.mantP, T.recV, T.recP, T.phV, T.phP, T.sinFecha, T.fuera, T.noApto].forEach((v, j) => {
+    const x = tr.getCell(j + 1); x.value = v; x.font = { name: 'Arial', size: 10, bold: true }; x.border = xBorder; x.alignment = { horizontal: j ? 'center' : 'left' };
+    x.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE3EAF0' } };
+  });
+  tr.getCell(6).numFmt = '0%';
+  if (D.rows.length) ws.addConditionalFormatting({ ref: 'F5:F' + last, rules: [{ type: 'dataBar', cfvo: [{ type: 'num', value: 0 }, { type: 'num', value: 1 }], color: { argb: 'FF1675AE' }, gradient: false }] });
+  ws.autoFilter = { from: { row: 4, column: 1 }, to: { row: last, column: cols.length } };
+
+  // 3. Faltan cargar
+  ws = wb.addWorksheet('Faltan cargar');
+  ws.columns = [{ width: 6 }, { width: 42 }, { width: 14 }, { width: 60 }];
+  title(ws, 'Empresas / áreas que faltan cargar sus extintores', sub, 4);
+  head(ws, 4, ['#', 'Empresa / Área', 'Usuarios', 'Observación']);
+  if (D.sinCarga.length) body(ws, 5, D.sinCarga.map((r, i) => [i + 1, r.nombre, r.usuarios, r.usuarios ? 'Tiene usuario: debe cargar sus extintores' : 'Sin usuario: solicitar el registro de su inspector']), [0, 2]);
+  else body(ws, 5, [['', 'Todas las empresas tienen extintores cargados', '', '']]);
+
+  // 4. Pendientes (detalle)
+  ws = wb.addWorksheet('Pendientes', { views: [{ state: 'frozen', ySplit: 4 }] });
+  const pc = ['Empresa / Área', 'Código', 'Ubicación', 'Estado', 'Últ. inspección', 'Próx. mantenimiento', 'Próx. recarga', 'Próx. PH', 'Pendiente'];
+  ws.columns = [{ width: 32 }, { width: 14 }, { width: 34 }, { width: 16 }, { width: 13 }, { width: 13 }, { width: 13 }, { width: 13 }, { width: 50 }];
+  title(ws, 'Extintores con pendientes', sub, pc.length);
+  head(ws, 4, pc);
+  body(ws, 5, D.det.map(x => [x.empresa, x.codigo, x.ubicacion, x.estado, xDate(x.ultIns), xDate(x.proxMant), xDate(x.proxRec), xDate(x.proxPh), x.pend]), [1, 3, 4, 5, 6, 7]);
+  for (let i = 5; i < 5 + D.det.length; i++) [5, 6, 7, 8].forEach(k => { ws.getCell(i, k).numFmt = 'dd/mm/yyyy'; });
+  if (D.det.length) ws.autoFilter = { from: { row: 4, column: 1 }, to: { row: 4 + D.det.length, column: pc.length } };
+
+  const buf = await wb.xlsx.writeBuffer();
+  saveBlob(buf, 'Reporte_gestion_extintores_' + D.mes + '.xlsx');
+  toast('Reporte descargado.');
+}
+
 /* ============================ QR: etiquetas y escáner ============================ */
 let QR_IDS = [];
 function printQrFiltered() { QR_IDS = filteredList().map(e => e.id); go('#/qr/lista'); }
@@ -1332,6 +1581,7 @@ function viewAjustes() {
     </div>
     ${isAdmin() ? `<div class="card" id="mail-card"><h2>Correos automáticos</h2><div class="sub">Consultando estado…</div></div>` : ''}
     <div class="card list" style="padding:4px 10px">
+      ${seesAll() ? `<div class="it" onclick="viewReporteModal()"><div class="grow"><b>Reporte de gestión</b><div class="sub">Indicadores y cuadros por empresa: faltan cargar, inspeccionar y mantenimiento (PDF / Excel)</div></div>${ico('print')}</div>` : ''}
       <div class="it" onclick="S.filters={q:'',emp:'',sem:'',est:''};xlsListado()"><div class="grow">Listado general de extintores (Excel)</div>${ico('down')}</div>
       <div class="it" onclick="xlsImportar()"><div class="grow">Carga masiva desde Excel</div>${ico('up')}</div>
       <div class="it" onclick="xlsPlantilla()"><div class="grow">Descargar plantilla vacía</div>${ico('xls')}</div>
